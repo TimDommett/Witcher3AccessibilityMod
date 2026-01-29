@@ -1,8 +1,15 @@
 // W3BlindAccess - Configuration
 // Handles loading, saving, and exposing accessibility settings
+//
+// Persistence uses theGame.GetInGameConfigWrapper() which reads/writes
+// the user.settings INI file at <UserDocs>/The Witcher 3/user.settings
+// under a custom [W3BlindAccess] section.
 
 class W3BA_Config
 {
+    // INI section name
+    private var sectionName : CName;
+
     // TTS settings
     private var ttsEnabled       : Bool;
     private var ttsSpeechRate    : Float;   // 0.5 – 2.0
@@ -27,6 +34,8 @@ class W3BA_Config
 
     private function SetDefaults()
     {
+        sectionName = 'W3BlindAccess';
+
         ttsEnabled              = true;
         ttsSpeechRate           = 1.0;
         menuVerbosity           = 1;
@@ -43,18 +52,109 @@ class W3BA_Config
     }
 
     // ---------------------------------------------------------------
-    // Persistence
+    // Persistence via user.settings INI
     // ---------------------------------------------------------------
 
     public function Load()
     {
+        var config : CInGameConfigWrapper;
+
         SetDefaults();
-        // TODO: Read from user config file / INI
+
+        config = theGame.GetInGameConfigWrapper();
+        if (!config)
+        {
+            return;
+        }
+
+        // Read each value; fall back to default if key is missing
+        ttsEnabled              = ReadBool(config, 'ttsEnabled', ttsEnabled);
+        ttsSpeechRate           = ReadFloat(config, 'ttsSpeechRate', ttsSpeechRate);
+        menuVerbosity           = ReadInt(config, 'menuVerbosity', menuVerbosity);
+
+        combatAudioEnabled      = ReadBool(config, 'combatAudioEnabled', combatAudioEnabled);
+        combatCueVolume         = ReadFloat(config, 'combatCueVolume', combatCueVolume);
+
+        navigationBeaconEnabled = ReadBool(config, 'navigationBeaconEnabled', navigationBeaconEnabled);
+        beaconInterval          = ReadFloat(config, 'beaconInterval', beaconInterval);
+
+        objectDetectionEnabled  = ReadBool(config, 'objectDetectionEnabled', objectDetectionEnabled);
+        detectionRadius         = ReadFloat(config, 'detectionRadius', detectionRadius);
+        objectScanInterval      = ReadFloat(config, 'objectScanInterval', objectScanInterval);
     }
 
     public function Save()
     {
-        // TODO: Write current settings to user config file / INI
+        var config : CInGameConfigWrapper;
+
+        config = theGame.GetInGameConfigWrapper();
+        if (!config)
+        {
+            return;
+        }
+
+        WriteBool(config, 'ttsEnabled', ttsEnabled);
+        WriteFloat(config, 'ttsSpeechRate', ttsSpeechRate);
+        WriteInt(config, 'menuVerbosity', menuVerbosity);
+
+        WriteBool(config, 'combatAudioEnabled', combatAudioEnabled);
+        WriteFloat(config, 'combatCueVolume', combatCueVolume);
+
+        WriteBool(config, 'navigationBeaconEnabled', navigationBeaconEnabled);
+        WriteFloat(config, 'beaconInterval', beaconInterval);
+
+        WriteBool(config, 'objectDetectionEnabled', objectDetectionEnabled);
+        WriteFloat(config, 'detectionRadius', detectionRadius);
+        WriteFloat(config, 'objectScanInterval', objectScanInterval);
+
+        theGame.SaveUserSettings();
+    }
+
+    // ---------------------------------------------------------------
+    // INI read helpers
+    // ---------------------------------------------------------------
+
+    private function ReadBool(config : CInGameConfigWrapper, key : CName, defaultVal : Bool) : Bool
+    {
+        var raw : String = config.GetVarValue(sectionName, key);
+        if (raw == "")       { return defaultVal; }
+        if (raw == "true")   { return true; }
+        if (raw == "1")      { return true; }
+        return false;
+    }
+
+    private function ReadInt(config : CInGameConfigWrapper, key : CName, defaultVal : Int32) : Int32
+    {
+        var raw : String = config.GetVarValue(sectionName, key);
+        if (raw == "") { return defaultVal; }
+        return StringToInt(raw);
+    }
+
+    private function ReadFloat(config : CInGameConfigWrapper, key : CName, defaultVal : Float) : Float
+    {
+        var raw : String = config.GetVarValue(sectionName, key);
+        if (raw == "") { return defaultVal; }
+        return StringToFloat(raw);
+    }
+
+    // ---------------------------------------------------------------
+    // INI write helpers
+    // ---------------------------------------------------------------
+
+    private function WriteBool(config : CInGameConfigWrapper, key : CName, value : Bool)
+    {
+        if (value) { config.SetVarValue(sectionName, key, "true"); }
+        else       { config.SetVarValue(sectionName, key, "false"); }
+    }
+
+    private function WriteInt(config : CInGameConfigWrapper, key : CName, value : Int32)
+    {
+        config.SetVarValue(sectionName, key, IntToString(value));
+    }
+
+    private function WriteFloat(config : CInGameConfigWrapper, key : CName, value : Float)
+    {
+        config.SetVarValue(sectionName, key, FloatToString(value));
     }
 
     // ---------------------------------------------------------------
