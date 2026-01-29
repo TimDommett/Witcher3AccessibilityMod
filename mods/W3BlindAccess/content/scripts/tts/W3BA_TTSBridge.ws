@@ -31,6 +31,9 @@ class W3BA_TTSBridge
     private var lastSpokenText       : String;
     private var deduplicateWindow    : Float;  // seconds
 
+    // Debug: show speech text on-screen when no ASI plugin is available
+    private var debugOverlayEnabled  : Bool;
+
     // ---------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------
@@ -47,6 +50,10 @@ class W3BA_TTSBridge
         // If no ASI plugin is present, Log() calls are harmless.
         isScreenReaderActive = true;
         activeScreenReader   = "IPC";
+
+        // Debug overlay: shows speech as on-screen notification.
+        // Enable this for testing when the ASI plugin is not yet compiled.
+        debugOverlayEnabled  = true;
 
         // Send a detect command so the ASI plugin logs which reader it found
         WriteSpeechCommand("DETECT");
@@ -95,6 +102,13 @@ class W3BA_TTSBridge
         var cmd : String = "SPEAK|" + interruptFlag + "|" + priority + "|" + text;
         WriteSpeechCommand(cmd);
 
+        // Debug overlay: show on screen so you can verify hooks work
+        // without needing the compiled ASI plugin
+        if (debugOverlayEnabled)
+        {
+            theGame.GetGuiManager().ShowNotification("[W3BA] " + text, 4000);
+        }
+
         // Also enqueue locally for any in-script consumers
         speechQueue.Enqueue(text, priority);
     }
@@ -111,6 +125,24 @@ class W3BA_TTSBridge
 
         speechQueue.Clear();
         WriteSpeechCommand("SILENCE");
+    }
+
+    // ---------------------------------------------------------------
+    // File-based IPC
+    // ---------------------------------------------------------------
+
+    // ---------------------------------------------------------------
+    // Debug overlay control
+    // ---------------------------------------------------------------
+
+    public function SetDebugOverlay(enabled : Bool)
+    {
+        debugOverlayEnabled = enabled;
+    }
+
+    public function IsDebugOverlayEnabled() : Bool
+    {
+        return debugOverlayEnabled;
     }
 
     // ---------------------------------------------------------------

@@ -186,6 +186,68 @@ WitcherScript                          ASI Plugin (in-process)
 3. **Menu item index mapping** — hardcoded index-to-label maps (main menu, pause menu) may break with DLC or other mods that add menu items
 4. **Combat timing** — attack wind-up durations are per-animation and may require reverse engineering (Phase 2)
 
+## Testing Phase 1 (Without ASI Plugin)
+
+A debug overlay has been added so you can visually verify all hook wiring without needing the compiled ASI plugin. When `debugOverlayEnabled` is `true` (the default), every `W3BA_SpeakText()` call shows the text as an on-screen notification via `ShowNotification()`.
+
+### Installation Steps
+
+1. Copy the entire `mods/W3BlindAccess/` folder into your Witcher 3 installation's `Mods/` directory:
+   ```
+   <Witcher 3 Install>/Mods/W3BlindAccess/
+   ```
+2. Launch the game. The Script Compiler will compile the WitcherScript files on startup.
+
+### What to Check
+
+#### Step 1: Script Compilation
+- Launch the game. If the mod has script errors, the game will show a compilation error dialog at startup.
+- **Pass**: Game launches to main menu without script errors.
+- **Fail**: Note the exact error text — it will identify which file and line has a syntax/type issue.
+
+#### Step 2: Main Menu Narration
+- At the main menu, press Up/Down to navigate between items.
+- **Expected**: A `[W3BA] Continue`, `[W3BA] New Game`, etc. notification appears on screen when each item is focused.
+- **Verify in log**: Open `<UserDocs>/The Witcher 3/scriptslog.txt` and look for lines containing `[W3BA]SPEAK|`.
+
+#### Step 3: Options Menu
+- Open Options from the main menu.
+- Navigate between tabs and settings.
+- **Expected**: `[W3BA] Video settings.`, `[W3BA] Setting 1`, etc. notifications appear.
+
+#### Step 4: Save/Load Screen
+- Open Load Game from the main menu.
+- Navigate between save slots.
+- **Expected**: `[W3BA] Save slot 1`, etc. notifications appear.
+
+#### Step 5: In-Game Pause Menu
+- Load a save, then press Escape to open the pause menu.
+- Navigate between menu items and tab panels.
+- **Expected**: `[W3BA] Resume`, `[W3BA] Inventory panel`, etc. notifications.
+
+#### Step 6: Dialogue Choices
+- Enter a dialogue with an NPC.
+- **Expected**: `[W3BA] 3 dialogue choices.` and `[W3BA] Choice 1` etc. on focus.
+
+### Known Issues for Testing
+
+- Menu item labels may be wrong — some hooks use hardcoded index-to-label maps that may not match your game version / DLC configuration. Report which indices map to which actual labels.
+- Options menu setting names show as "Setting 1", "Setting 2" — the actual `CInGameConfigWrapper` wiring is TODO.
+- Save slot descriptions are placeholders.
+- `GetCurrentMenuItemIndex()` may not exist on all menu classes — if you see errors referencing this, note which class it fails on.
+- Dialogue hook method signatures are assumed — may cause script compilation errors.
+
+### Disabling Debug Overlay
+
+Once the ASI plugin is compiled and working, disable the overlay by adding to `user.settings`:
+```ini
+[W3BlindAccess]
+debugOverlay=false
+```
+Or via the debug console: the `SetDebugOverlay(false)` method on the TTSBridge.
+
+---
+
 ## File Tree
 
 ```
