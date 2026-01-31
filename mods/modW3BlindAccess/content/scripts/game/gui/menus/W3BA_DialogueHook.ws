@@ -23,16 +23,18 @@ var w3ba_dialogueChoicesVisible : bool;
 @wrapMethod(CR4HudModuleDialog)
 function ShowDialogChoices(choices : array<SSceneChoice>)
 {
+    var count : int;
+    var announcement : string;
+
     wrappedMethod(choices);
 
     w3ba_dialogueChoicesVisible = true;
     w3ba_lastDialogueChoiceIndex = -1;
 
     // Announce the number of choices
-    var count : int = choices.Size();
+    count = choices.Size();
     if (count > 0)
     {
-        var announcement : string;
         announcement = count + " dialogue options. ";
 
         // Read the first choice
@@ -49,6 +51,9 @@ function ShowDialogChoices(choices : array<SSceneChoice>)
 @wrapMethod(CR4HudModuleDialog)
 function OnDialogChoiceFocused(choiceIndex : int)
 {
+    var choiceText : string;
+    var prefix : string;
+
     wrappedMethod(choiceIndex);
 
     if (!w3ba_dialogueChoicesVisible) { return; }
@@ -57,8 +62,8 @@ function OnDialogChoiceFocused(choiceIndex : int)
     w3ba_lastDialogueChoiceIndex = choiceIndex;
 
     // Get the focused choice text
-    var choiceText : string = GetCurrentChoiceText(choiceIndex);
-    var prefix : string = (choiceIndex + 1) + ": ";
+    choiceText = GetCurrentChoiceText(choiceIndex);
+    prefix = (choiceIndex + 1) + ": ";
 
     W3BA_SpeakText(prefix + choiceText, true, 2);
     W3BA_PlayCue("ui_menu_focus");
@@ -81,7 +86,9 @@ function HideDialogChoices()
 // Extract readable text from a dialogue choice, including any special markers
 function W3BA_GetChoiceText(choice : SSceneChoice) : string
 {
-    var text : string = choice.description;
+    var text : string;
+
+    text = choice.description;
 
     // Annotate special choice types
     if (choice.emphasised)

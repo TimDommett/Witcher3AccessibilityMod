@@ -11,7 +11,7 @@ var w3ba_lastOptionIndex : int;
 var w3ba_lastOptionTabIndex : int;
 
 @wrapMethod(CR4OptionsMenu)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
     wrappedMethod();
 
@@ -24,15 +24,16 @@ event /*flash*/ OnConfigUI()
 
 // Narrate when switching between option tabs
 @wrapMethod(CR4OptionsMenu)
-event /*flash*/ OnTabChanged(tabIndex : int)
+function OnTabChanged(tabIndex : int)
 {
+    var tabName : string;
+
     wrappedMethod(tabIndex);
 
     if (tabIndex == w3ba_lastOptionTabIndex) { return; }
     w3ba_lastOptionTabIndex = tabIndex;
     w3ba_lastOptionIndex    = -1; // reset item tracking for new tab
 
-    var tabName : string;
     switch (tabIndex)
     {
         case 0: tabName = "Video";       break;
@@ -50,7 +51,7 @@ event /*flash*/ OnTabChanged(tabIndex : int)
 
 // Narrate individual setting focus
 @wrapMethod(CR4OptionsMenu)
-event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
     W3BA_NarrateOptionSelection(this);
@@ -59,21 +60,22 @@ event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 function W3BA_NarrateOptionSelection(menu : CR4OptionsMenu)
 {
     var currentIndex : int;
+    var settingName  : string;
+    var settingValue : string;
+    var text : string;
+
     currentIndex = menu.GetCurrentMenuItemIndex();
 
     if (currentIndex == menu.w3ba_lastOptionIndex) { return; }
     menu.w3ba_lastOptionIndex = currentIndex;
 
     // Read the setting name and current value from the Flash layer
-    var settingName  : string;
-    var settingValue : string;
-
     // The options menu stores setting data in Flash.
     // We attempt to read the currently focused entry's label and value.
     settingName  = W3BA_GetOptionName(menu, currentIndex);
     settingValue = W3BA_GetOptionValue(menu, currentIndex);
 
-    var text : string = settingName;
+    text = settingName;
     if (settingValue != "")
     {
         text += ": " + settingValue;
@@ -106,7 +108,7 @@ function W3BA_GetOptionValue(menu : CR4OptionsMenu, index : int) : string
 
 // Narrate when a setting value is changed
 @wrapMethod(CR4OptionsMenu)
-event /*flash*/ OnOptionValueChanged(optionName : string, optionValue : string)
+function OnOptionValueChanged(optionName : string, optionValue : string)
 {
     wrappedMethod(optionName, optionValue);
 
@@ -115,7 +117,7 @@ event /*flash*/ OnOptionValueChanged(optionName : string, optionValue : string)
 }
 
 @wrapMethod(CR4OptionsMenu)
-event /*flash*/ OnCloseMenu()
+function OnCloseMenu()
 {
     wrappedMethod();
     W3BA_PlayCue("ui_menu_back");

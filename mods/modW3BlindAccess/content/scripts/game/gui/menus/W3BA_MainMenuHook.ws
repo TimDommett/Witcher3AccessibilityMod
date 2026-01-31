@@ -15,7 +15,7 @@ var w3ba_menuInitialized : bool;
 
 // Called when the menu's Flash UI is configured
 @wrapMethod(CR4CommonMainMenu)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
     wrappedMethod();
 
@@ -34,7 +34,7 @@ event /*flash*/ OnConfigUI()
 
 // Called on every input action in the menu
 @wrapMethod(CR4CommonMainMenu)
-event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
 
@@ -45,23 +45,24 @@ event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 // Reads the current selection and narrates if it changed
 function W3BA_NarrateMainMenuSelection(menu : CR4CommonMainMenu)
 {
+    var flashStorage : CScriptedFlashValueStorage;
+    var currentIndex : int;
+    var label : string;
+
     // The Flash menu stores the current selection index.
     // We attempt to read it from the Flash value storage.
-    var flashStorage : CScriptedFlashValueStorage;
     flashStorage = menu.GetMenuFlashValueStorage();
     if (!flashStorage) { return; }
 
     // Main menu items are typically in a list component.
     // The exact Flash path depends on the SWF structure.
     // Common approach: read the "selectedIndex" data binding.
-    var currentIndex : int;
     currentIndex = menu.GetCurrentMenuItemIndex();
 
     if (currentIndex == menu.w3ba_lastMainMenuIndex) { return; }
     menu.w3ba_lastMainMenuIndex = currentIndex;
 
     // Map index to label
-    var label : string;
     label = W3BA_GetMainMenuLabel(currentIndex);
 
     if (label != "")
@@ -90,7 +91,7 @@ function W3BA_GetMainMenuLabel(index : int) : string
 
 // Hook the close event to announce leaving
 @wrapMethod(CR4CommonMainMenu)
-event /*flash*/ OnCloseMenu()
+function OnCloseMenu()
 {
     wrappedMethod();
     W3BA_PlayCue("ui_menu_back");

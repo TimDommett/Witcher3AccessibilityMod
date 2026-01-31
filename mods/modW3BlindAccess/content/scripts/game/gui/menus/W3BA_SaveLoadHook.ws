@@ -12,7 +12,7 @@
 var w3ba_lastSaveSlotIndex : int;
 
 @wrapMethod(CR4SaveGameMenu)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
     wrappedMethod();
 
@@ -22,7 +22,7 @@ event /*flash*/ OnConfigUI()
 }
 
 @wrapMethod(CR4SaveGameMenu)
-event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
     W3BA_NarrateSaveSlotSelection(this);
@@ -31,13 +31,14 @@ event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 function W3BA_NarrateSaveSlotSelection(menu : CR4SaveGameMenu)
 {
     var currentIndex : int;
+    var slotText : string;
+
     currentIndex = menu.GetCurrentMenuItemIndex();
 
     if (currentIndex == menu.w3ba_lastSaveSlotIndex) { return; }
     menu.w3ba_lastSaveSlotIndex = currentIndex;
 
     // Try to get slot info from the menu's data
-    var slotText : string;
     slotText = W3BA_BuildSaveSlotDescription(menu, currentIndex);
 
     if (slotText != "")
@@ -75,7 +76,7 @@ function W3BA_BuildSaveSlotDescription(menu : CR4SaveGameMenu, index : int) : st
 var w3ba_lastLoadSlotIndex : int;
 
 @wrapMethod(CR4LoadGameMenu)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
     wrappedMethod();
 
@@ -85,7 +86,7 @@ event /*flash*/ OnConfigUI()
 }
 
 @wrapMethod(CR4LoadGameMenu)
-event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
     W3BA_NarrateLoadSlotSelection(this);
@@ -94,12 +95,13 @@ event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 function W3BA_NarrateLoadSlotSelection(menu : CR4LoadGameMenu)
 {
     var currentIndex : int;
+    var slotText : string;
+
     currentIndex = menu.GetCurrentMenuItemIndex();
 
     if (currentIndex == menu.w3ba_lastLoadSlotIndex) { return; }
     menu.w3ba_lastLoadSlotIndex = currentIndex;
 
-    var slotText : string;
     // TODO: Extract actual save metadata (area, date, playtime)
     slotText = "Save slot " + (currentIndex + 1) + ".";
 
@@ -113,12 +115,13 @@ function W3BA_NarrateLoadSlotSelection(menu : CR4LoadGameMenu)
 
 // The game uses a generic confirmation popup. We hook it to narrate the message.
 @wrapMethod(CR4OverlayPopup)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
+    var flashStorage : CScriptedFlashValueStorage;
+
     wrappedMethod();
 
     // Attempt to read the popup message text
-    var flashStorage : CScriptedFlashValueStorage;
     flashStorage = this.GetMenuFlashValueStorage();
 
     // The popup typically has a message string and Yes/No buttons

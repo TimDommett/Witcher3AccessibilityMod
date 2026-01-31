@@ -9,7 +9,7 @@
 var w3ba_lastIngameMenuIndex : int;
 
 @wrapMethod(CR4IngameMenu)
-event /*flash*/ OnConfigUI()
+function OnConfigUI()
 {
     wrappedMethod();
 
@@ -19,7 +19,7 @@ event /*flash*/ OnConfigUI()
 }
 
 @wrapMethod(CR4IngameMenu)
-event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
     W3BA_NarrateIngameMenuSelection(this);
@@ -28,12 +28,13 @@ event /*flash*/ OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 function W3BA_NarrateIngameMenuSelection(menu : CR4IngameMenu)
 {
     var currentIndex : int;
+    var label : string;
+
     currentIndex = menu.GetCurrentMenuItemIndex();
 
     if (currentIndex == menu.w3ba_lastIngameMenuIndex) { return; }
     menu.w3ba_lastIngameMenuIndex = currentIndex;
 
-    var label : string;
     label = W3BA_GetIngameMenuLabel(currentIndex);
 
     if (label != "")
@@ -58,7 +59,7 @@ function W3BA_GetIngameMenuLabel(index : int) : string
 }
 
 @wrapMethod(CR4IngameMenu)
-event /*flash*/ OnCloseMenu()
+function OnCloseMenu()
 {
     wrappedMethod();
     W3BA_SpeakText("Resuming game.", true, 1);
@@ -67,11 +68,12 @@ event /*flash*/ OnCloseMenu()
 
 // Hook tab changes for the panel sub-menus (Inventory, Map, Journal, etc.)
 @wrapMethod(CR4IngameMenu)
-event /*flash*/ OnTabChanged(tabIndex : int)
+function OnTabChanged(tabIndex : int)
 {
+    var tabName : string;
+
     wrappedMethod(tabIndex);
 
-    var tabName : string;
     switch (tabIndex)
     {
         case 0: tabName = "Inventory";     break;

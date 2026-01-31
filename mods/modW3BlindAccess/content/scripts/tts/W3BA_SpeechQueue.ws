@@ -17,18 +17,20 @@ class W3BA_SpeechQueue
 
     public function Enqueue(text : String, priority : Int32)
     {
-        var entry : W3BA_SpeechEntry;
-        entry.text     = text;
-        entry.priority = priority;
+        var speechItem : W3BA_SpeechEntry;
+        var inserted : Bool;
+        var i : Int32;
+
+        speechItem.text     = text;
+        speechItem.priority = priority;
 
         // Insert sorted by priority (highest first)
-        var inserted : Bool = false;
-        var i : Int32;
+        inserted = false;
         for (i = 0; i < entries.Size(); i += 1)
         {
             if (priority > entries[i].priority)
             {
-                entries.Insert(i, entry);
+                entries.Insert(i, speechItem);
                 inserted = true;
                 break;
             }
@@ -36,29 +38,31 @@ class W3BA_SpeechQueue
 
         if (!inserted)
         {
-            entries.PushBack(entry);
+            entries.PushBack(speechItem);
         }
     }
 
     public function Dequeue() : W3BA_SpeechEntry
     {
-        var entry : W3BA_SpeechEntry;
+        var speechItem : W3BA_SpeechEntry;
+
         if (entries.Size() > 0)
         {
-            entry = entries[0];
+            speechItem = entries[0];
             entries.Erase(0);
         }
-        return entry;
+        return speechItem;
     }
 
     public function Peek() : W3BA_SpeechEntry
     {
-        var entry : W3BA_SpeechEntry;
+        var speechItem : W3BA_SpeechEntry;
+
         if (entries.Size() > 0)
         {
-            entry = entries[0];
+            speechItem = entries[0];
         }
-        return entry;
+        return speechItem;
     }
 
     public function Clear()

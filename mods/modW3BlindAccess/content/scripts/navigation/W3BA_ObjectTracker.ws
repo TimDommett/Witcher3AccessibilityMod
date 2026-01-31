@@ -19,10 +19,10 @@ enum W3BA_ObjectCategory
 
 struct W3BA_InteractableInfo
 {
-    var name     : String;
-    var category : W3BA_ObjectCategory;
-    var position : Vector;
-    var distance : Float;
+    var objectName : String;
+    var category   : W3BA_ObjectCategory;
+    var position   : Vector;
+    var distance   : Float;
 }
 
 // ---------------------------------------------------------------
@@ -79,13 +79,15 @@ class W3BA_ObjectTracker
 
     public function ToggleTracker()
     {
+        var summary : String;
+
         isActive = !isActive;
 
         if (isActive)
         {
             ScanNearbyObjects();
             currentIndex = -1;
-            var summary : String = BuildSummary();
+            summary = BuildSummary();
             ttsBridge.Speak("Object tracker active. " + summary, true, 2);
         }
         else
@@ -121,13 +123,14 @@ class W3BA_ObjectTracker
 
     public function CycleFilter()
     {
+        var filterName : String;
+
         activeFilter += 1;
         if (activeFilter > 7) { activeFilter = -1; } // -1 = all
 
         currentIndex = -1;
         ScanNearbyObjects();
 
-        var filterName : String;
         if (activeFilter == -1) { filterName = "All"; }
         else { filterName = CategoryToString(activeFilter); }
 
@@ -155,17 +158,21 @@ class W3BA_ObjectTracker
 
     private function AnnounceCurrentObject()
     {
+        var obj : W3BA_InteractableInfo;
+        var text : String;
+        var cueId : String;
+
         if (currentIndex < 0 || currentIndex >= nearbyObjects.Size()) { return; }
 
-        var obj : W3BA_InteractableInfo = nearbyObjects[currentIndex];
-        var text : String = obj.name + ", " + RoundF(obj.distance) + " meters, ";
+        obj = nearbyObjects[currentIndex];
+        text = obj.objectName + ", " + RoundF(obj.distance) + " meters, ";
         // TODO: append relative direction from W3BA_SpatialAudio
         text += "nearby";
 
         ttsBridge.Speak(text, true, 1);
 
         // Play spatial cue at object position
-        var cueId : String = GetCueForCategory(obj.category);
+        cueId = GetCueForCategory(obj.category);
         audioManager.PlayCue3D(cueId, obj.position, 1.0);
     }
 

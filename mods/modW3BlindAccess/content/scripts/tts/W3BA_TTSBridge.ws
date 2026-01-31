@@ -3,21 +3,14 @@
 // via file-based IPC to ASI plugin which loads Tolk.dll
 //
 // Architecture:
-//   WitcherScript writes speech commands to W3BA_speech.log
-//   ASI plugin (W3BA_TTS.asi) polls this file each frame
-//   ASI plugin calls Tolk_Output() for each line
-//   File is truncated after reading
+//   WitcherScript writes speech commands via LogChannel('W3BA', ...)
+//   ASI plugin (W3BA_TTS.asi) polls scriptslog.txt each frame
+//   ASI plugin calls Tolk_Output() for each W3BA command
 //
-// Speech command format (one per line):
+// Speech command format (one per line in scriptslog.txt):
 //   SPEAK|<interrupt 0/1>|<priority>|<text>
 //   SILENCE
 //   DETECT
-
-// Speech priority levels
-const var W3BA_PRIORITY_LOW    : Int32 = 0;
-const var W3BA_PRIORITY_MEDIUM : Int32 = 1;
-const var W3BA_PRIORITY_HIGH   : Int32 = 2;
-const var W3BA_PRIORITY_URGENT : Int32 = 3;
 
 class W3BA_TTSBridge
 {
@@ -79,6 +72,9 @@ class W3BA_TTSBridge
 
     public function Speak(text : String, interrupt : Bool, optional priority : Int32)
     {
+        var interruptFlag : String;
+        var cmd : String;
+
         if (!isScreenReaderActive) { return; }
         if (StrLen(text) == 0)     { return; }
 
@@ -95,11 +91,10 @@ class W3BA_TTSBridge
         }
 
         // Write directly to IPC file for the ASI plugin to pick up
-        var interruptFlag : String;
         if (interrupt) { interruptFlag = "1"; }
         else           { interruptFlag = "0"; }
 
-        var cmd : String = "SPEAK|" + interruptFlag + "|" + priority + "|" + text;
+        cmd = "SPEAK|" + interruptFlag + "|" + priority + "|" + text;
         WriteSpeechCommand(cmd);
 
         // Debug overlay: show on screen so you can verify hooks work
@@ -116,7 +111,7 @@ class W3BA_TTSBridge
     public function SpeakSync(text : String)
     {
         // In file-based IPC we can't truly block, so just speak with high priority
-        Speak(text, true, W3BA_PRIORITY_URGENT);
+        Speak(text, true, W3BA_PRIORITY_URGENT());
     }
 
     public function Silence()
@@ -126,10 +121,6 @@ class W3BA_TTSBridge
         speechQueue.Clear();
         WriteSpeechCommand("SILENCE");
     }
-
-    // ---------------------------------------------------------------
-    // File-based IPC
-    // ---------------------------------------------------------------
 
     // ---------------------------------------------------------------
     // Debug overlay control
@@ -149,16 +140,10 @@ class W3BA_TTSBridge
     // File-based IPC
     // ---------------------------------------------------------------
 
-    // Writes a command line to the speech IPC file.
-    // The ASI plugin monitors this file and processes commands.
-    //
-    // We use LogChannel() which writes to the game's script log.
-    // The ASI plugin hooks into this log output or monitors the log file.
+    // Writes a command line to the speech IPC channel.
+    // The ASI plugin monitors scriptslog.txt for lines tagged [W3BA].
     private function WriteSpeechCommand(cmd : String)
     {
-        // LogChannel is a built-in WitcherScript function that writes to
-        // the script log at <UserDocs>/The Witcher 3/scriptslog.txt
-        // Our ASI plugin monitors this file for lines prefixed with [W3BA]
         LogChannel('W3BA', cmd);
     }
 }
