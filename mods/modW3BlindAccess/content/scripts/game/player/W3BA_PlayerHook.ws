@@ -34,6 +34,7 @@ timer function W3BA_Update(dt : float, id : int)
     if (core)
     {
         core.Update(dt);
+        W3BA_CheckInputActions(core);
     }
 }
 

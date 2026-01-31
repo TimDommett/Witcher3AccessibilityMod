@@ -1,0 +1,35 @@
+;; W3BlindAccess - Custom Input Bindings
+;; These define accessibility hotkeys for the mod.
+;;
+;; Players can remap these by editing this file or through
+;; the game's input settings (if the actions appear there).
+;;
+;; Default bindings use numpad keys to avoid conflicts:
+;;   Numpad 0 : Toggle navigation beacon
+;;   Numpad 1 : Announce objective (distance + direction)
+;;   Numpad 2 : Toggle object tracker
+;;   Numpad 3 : Next tracked object
+;;   Numpad 4 : Previous tracked object
+;;   Numpad 5 : Announce health status
+;;   Numpad 6 : Announce full status summary
+
+[W3BA_ToggleBeacon]
+IK_Numpad0=(Action=W3BA_ToggleBeacon)
+
+[W3BA_AnnounceObj]
+IK_Numpad1=(Action=W3BA_AnnounceObj)
+
+[W3BA_ToggleTracker]
+IK_Numpad2=(Action=W3BA_ToggleTracker)
+
+[W3BA_NextObject]
+IK_Numpad3=(Action=W3BA_NextObject)
+
+[W3BA_PrevObject]
+IK_Numpad4=(Action=W3BA_PrevObject)
+
+[W3BA_AnnounceHealth]
+IK_Numpad5=(Action=W3BA_AnnounceHealth)
+
+[W3BA_AnnounceStatus]
+IK_Numpad6=(Action=W3BA_AnnounceStatus)

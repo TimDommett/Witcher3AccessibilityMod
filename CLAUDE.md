@@ -30,7 +30,16 @@ Full mod directory structure and WitcherScript module stubs for all 4 subsystems
 | **Combat Monitor** | `scripts/combat/W3BA_CombatMonitor.ws` | **Implemented** | Real combat detection, enemy tracking, health monitoring, target tracking |
 | **Combat Cues** | `scripts/combat/W3BA_CombatCues.ws` | **Implemented** | Enemy pings, health warnings, target announcements, speech throttling |
 | **Menu Narrator** | `scripts/ui/W3BA_MenuNarrator.ws` | Scaffolded | Menu/dialogue/save TTS narration templates. |
-| **Inventory Narrator** | `scripts/ui/W3BA_InventoryNarrator.ws` | Scaffolded | Brief/detail/comparison/consumable narration. Item data extraction TODO. |
+| **Inventory Narrator** | `scripts/ui/W3BA_InventoryNarrator.ws` | **Implemented** | Brief/detail/comparison/consumable/equipment status narration with real item data |
+| **Input Handler** | `scripts/local/W3BA_InputHandler.ws` | **Implemented** | Hotkey polling with cooldown, health/status announcements |
+| **Inventory Hook** | `game/gui/menus/W3BA_InventoryHook.ws` | **Implemented** | Item focus narration with real CInventoryComponent data |
+| **Character Hook** | `game/gui/menus/W3BA_CharacterHook.ws` | **Implemented** | Skills/abilities tab and item narration |
+| **Journal Hook** | `game/gui/menus/W3BA_JournalHook.ws` | **Implemented** | Quest list tabs, tracked quest announcement |
+| **Map Hook** | `game/gui/menus/W3BA_MapHook.ws` | **Implemented** | Area name + location announcement |
+| **Alchemy Hook** | `game/gui/menus/W3BA_AlchemyHook.ws` | **Implemented** | Potion/oil/bomb/decoction recipe tabs |
+| **Crafting Hook** | `game/gui/menus/W3BA_CraftingHook.ws` | **Implemented** | Weapon/armor/upgrade schematic tabs |
+| **Glossary Hook** | `game/gui/menus/W3BA_GlossaryHook.ws` | **Implemented** | Bestiary, characters, places, tutorial, books tabs |
+| **Meditation Hook** | `game/gui/menus/W3BA_MeditationHook.ws` | **Implemented** | Game time narration, meditation target time |
 
 ### Phase 1: Foundation (Done)
 
@@ -158,14 +167,44 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 5. **Wwise soundbank** — still no `.bnk` file; audio cues are silent
 6. **ASI plugin not compiled** — C++ source is written but needs Windows build
 
-### Phase 3+ TODO Items
+### Phase 3: Full System Access (Done — code written, needs in-game testing)
 
-- Full inventory narration with item data extraction
-- Equipment comparison
-- Crafting/alchemy narration
-- Bestiary accessibility
-- Audio cue glossary / tutorial
-- Accessibility config menu with hotkeys
+#### Input Handler (`W3BA_InputHandler.ws`) — NEW
+- Polls `theInput.IsActionJustPressed()` for 7 custom accessibility actions
+- Cooldown system (0.3s) prevents duplicate triggers
+- Skips input during dialogue/cutscenes
+- Health announcement: vitality %, toxicity %, adrenaline points
+- Full status: health + level + crowns + current area + equipped weapon
+
+#### Custom Input Bindings (`input.settings`) — NEW
+| Key | Action | Description |
+|-----|--------|-------------|
+| Numpad 0 | `W3BA_ToggleBeacon` | Toggle navigation beacon |
+| Numpad 1 | `W3BA_AnnounceObj` | Announce objective (distance + direction) |
+| Numpad 2 | `W3BA_ToggleTracker` | Toggle object tracker |
+| Numpad 3 | `W3BA_NextObject` | Next tracked object |
+| Numpad 4 | `W3BA_PrevObject` | Previous tracked object |
+| Numpad 5 | `W3BA_AnnounceHealth` | Announce health status |
+| Numpad 6 | `W3BA_AnnounceStatus` | Announce full status summary |
+
+#### Menu Hooks — 8 New Game Menu Hooks
+All hooks use `@wrapMethod` / `@addField` pattern on game menu classes:
+
+| Hook File | Target Class | What It Narrates |
+|-----------|-------------|------------------|
+| `W3BA_InventoryHook.ws` | `CR4InventoryMenu` | Item name, equipped status, quantity, quality via CInventoryComponent |
+| `W3BA_CharacterHook.ws` | `CR4CharacterMenu` | Skill tabs (Combat, Signs, Alchemy, General, Mutagens), skill items |
+| `W3BA_JournalHook.ws` | `CR4JournalQuestMenu` | Quest tabs (Main, Secondary, Contracts, Treasure), tracked quest |
+| `W3BA_MapHook.ws` | `CR4MapMenu` | Current area name (White Orchard, Novigrad, etc.) + coordinates |
+| `W3BA_AlchemyHook.ws` | `CR4AlchemyMenu` | Recipe tabs (Potions, Oils, Bombs, Decoctions, Substances) |
+| `W3BA_CraftingHook.ws` | `CR4CraftingMenu` | Schematic tabs (Weapons, Armor, Upgrades, Components) |
+| `W3BA_GlossaryHook.ws` | `CR4GlossaryBestiaryMenu` | Entry tabs (Monsters, Characters, Places, Tutorial, Books) |
+| `W3BA_MeditationHook.ws` | `CR4MeditationClockMenu` | Current game time (12h format), meditation target time |
+
+#### Enhanced Inventory Narrator
+- `NarrateItemById()` — extracts real item data via `CInventoryComponent`: name, equipped status, quality (rarity string), quantity
+- `NarrateEquipmentStatus()` — quick summary: total items + equipped count
+- `RarityToString()` — maps quality int to Common/Master/Magic/Rare/Relic
 
 ---
 
@@ -202,14 +241,22 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 - [ ] Dodge/parry detection hooks (method signatures unverified)
 - [ ] Wwise soundbank creation
 
-### Phase 3: Full System Access
-- [ ] Full inventory narration
-- [ ] Equipment comparison
-- [ ] Crafting/alchemy narration
-- [ ] Object tracker/scanner
-- [ ] Bestiary accessibility
-- [ ] Audio cue glossary
-- [ ] Accessibility config menu
+### Phase 3: Full System Access — DONE (code written, needs in-game testing)
+- [x] Full inventory narration with real CInventoryComponent data
+- [x] Equipment status summary (item count + equipped count)
+- [x] Crafting menu hook with schematic tabs
+- [x] Alchemy menu hook with recipe tabs
+- [x] Character/skills menu hook with skill tabs
+- [x] Journal/quest menu hook with tracked quest
+- [x] Map menu hook with area name announcement
+- [x] Bestiary/glossary menu hook
+- [x] Meditation menu hook with game time narration
+- [x] Accessibility hotkey system (7 numpad keys)
+- [x] Health/toxicity/adrenaline status announcements
+- [x] Full status summary (level, crowns, area, weapon)
+- [ ] Equipment comparison narration (structure exists, needs real stat diff data)
+- [ ] Skill/recipe/schematic detail narration (placeholder text, needs real data APIs)
+- [ ] In-game testing and API verification
 
 ### Phase 4: Polish
 - [ ] Environmental audio descriptions
@@ -357,6 +404,47 @@ A debug overlay has been added so you can visually verify all hook wiring withou
 - `GetCurrentMenuItemIndex()` may not exist on all menu classes — if you see errors referencing this, note which class it fails on.
 - Dialogue hook method signatures are assumed — may cause script compilation errors.
 
+### Testing Phase 2 + 3 (In-Game)
+
+#### Step 7: Player Spawn + Tick Loop
+- Load a save game.
+- **Expected**: `[W3BA] In game. Accessibility active.` notification on spawn.
+- This confirms the PlayerHook timer is running.
+
+#### Step 8: Combat System
+- Enter combat with any enemy.
+- **Expected**: `[W3BA] 1 enemy.` (or N enemies) announcement.
+- During combat, enemy positions should ping spatially every 1.5s.
+- When health drops below 25%: `[W3BA] Low health.`
+- When health drops below 10%: `[W3BA] Critical health!`
+- When combat ends: `[W3BA] Combat ended.`
+
+#### Step 9: Hotkeys (Numpad)
+- Press Numpad 5 outside combat.
+- **Expected**: `[W3BA] Health: XX percent. Toxicity: 0 percent.`
+- Press Numpad 6 for full status.
+- **Expected**: Level, crowns, area name, equipped weapon.
+- Press Numpad 0 to toggle beacon (will say "on"/"off" but won't ping without waypoint API).
+
+#### Step 10: Inventory Menu
+- Open inventory (pause menu → Inventory tab).
+- Navigate between items.
+- **Expected**: Item name, equipped status, quantity, quality narrated.
+
+#### Step 11: Other Menus
+- Open Character, Journal, Map, Alchemy, Crafting, Glossary, Meditation menus.
+- **Expected**: Tab announcements and item narration on each.
+
+### Known Issues for Phase 2+3 Testing
+
+- **Navigation beacon won't ping** — waypoint position extraction returns zero (API unverified)
+- **Object tracker scan** — entity tags ('container', 'herb', 'door') are assumed
+- **Dodge/parry hooks not active** — method signatures unverified, commented out
+- **Enemy attack detection missing** — no wind-up animation state hooks yet
+- **Skill/recipe/schematic names** — placeholder text ("Skill N", "Recipe N") in some hooks
+- **Menu class names** — CR4CharacterMenu, CR4AlchemyMenu etc. are assumed; may differ
+- **input.settings** — custom action names must be recognized by the game engine
+
 ### Disabling Debug Overlay
 
 Once the ASI plugin is compiled and working, disable the overlay by adding to `user.settings`:
@@ -379,8 +467,11 @@ mods/modW3BlindAccess/
 │       ├── W3BA_TTS.cpp          # ASI plugin: Tolk integration + log polling
 │       └── Tolk.h                # Tolk API header
 ├── content/
+│   ├── input.settings            # Custom hotkey bindings (Numpad 0-6)
 │   ├── scripts/
-│   │   ├── local/W3BA_Init.ws    # Singleton, globals, audio cue constants
+│   │   ├── local/
+│   │   │   ├── W3BA_Init.ws      # Singleton, globals, audio cue constants
+│   │   │   └── W3BA_InputHandler.ws  # Hotkey polling, health/status announce
 │   │   ├── core/
 │   │   │   ├── W3BA_CoreManager.ws
 │   │   │   ├── W3BA_Config.ws    # INI persistence via CInGameConfigWrapper
@@ -407,7 +498,15 @@ mods/modW3BlindAccess/
 │   │       ├── W3BA_IngameMenuHook.ws
 │   │       ├── W3BA_OptionsMenuHook.ws
 │   │       ├── W3BA_SaveLoadHook.ws
-│   │       └── W3BA_DialogueHook.ws
+│   │       ├── W3BA_DialogueHook.ws
+│   │       ├── W3BA_InventoryHook.ws     # Phase 3: Inventory item narration
+│   │       ├── W3BA_CharacterHook.ws     # Phase 3: Skills/abilities
+│   │       ├── W3BA_JournalHook.ws       # Phase 3: Quest list/details
+│   │       ├── W3BA_MapHook.ws           # Phase 3: Area + location
+│   │       ├── W3BA_AlchemyHook.ws       # Phase 3: Potion/oil/bomb recipes
+│   │       ├── W3BA_CraftingHook.ws      # Phase 3: Smithing schematics
+│   │       ├── W3BA_GlossaryHook.ws      # Phase 3: Bestiary/glossary
+│   │       └── W3BA_MeditationHook.ws    # Phase 3: Meditation + time
 │   ├── sounds/.gitkeep
 │   └── strings/.gitkeep
 └── bin/x64/plugins/.gitkeep

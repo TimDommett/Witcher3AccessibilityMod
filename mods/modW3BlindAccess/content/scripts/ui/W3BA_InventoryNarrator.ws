@@ -1,5 +1,6 @@
 // W3BlindAccess - Inventory Narrator
-// Provides detailed TTS narration for inventory, equipment, and item details
+// Provides detailed TTS narration for inventory, equipment, and item details.
+// Includes item data extraction helpers using CInventoryComponent.
 
 class W3BA_InventoryNarrator
 {
@@ -20,7 +21,6 @@ class W3BA_InventoryNarrator
 
     public function NarrateItemBrief(itemName : String, isEquipped : Bool, primaryStat : String)
     {
-        // Format: "Steel Sword, Equipped, 85 damage"
         var text : String;
         text = itemName;
 
@@ -33,6 +33,44 @@ class W3BA_InventoryNarrator
         {
             text += ", " + primaryStat;
         }
+
+        ttsBridge.Speak(text, true, 2);
+    }
+
+    // ---------------------------------------------------------------
+    // Full item narration from item ID (using game inventory APIs)
+    // ---------------------------------------------------------------
+
+    public function NarrateItemById(itemId : SItemUniqueId)
+    {
+        var inv : CInventoryComponent;
+        var itemName : String;
+        var text : String;
+        var isEquipped : Bool;
+        var quantity : Int32;
+        var quality : Int32;
+
+        inv = thePlayer.GetInventory();
+        if (!inv) { return; }
+
+        itemName = inv.GetItemLocalizedNameByUniqueID(itemId);
+        if (itemName == "") { itemName = "Unknown item"; }
+
+        text = itemName;
+
+        isEquipped = inv.IsItemEquipped(itemId);
+        if (isEquipped) { text += ". Equipped"; }
+
+        quality = inv.GetItemQuality(itemId);
+        if (quality > 1)
+        {
+            text += ". " + RarityToString(quality) + " quality";
+        }
+
+        quantity = inv.GetItemQuantity(itemId);
+        if (quantity > 1) { text += ". Count: " + quantity; }
+
+        text += ".";
 
         ttsBridge.Speak(text, true, 2);
     }
@@ -51,12 +89,6 @@ class W3BA_InventoryNarrator
         description : String
     )
     {
-        // Format: "Viper Steel Sword. Relic quality.
-        //          Damage: 85 to 104.
-        //          Bonus: Plus 15% critical hit chance.
-        //          Currently equipped in steel sword slot.
-        //          Description: A blade forged by Witchers of the Viper school."
-
         var text : String;
         var i : Int32;
 
@@ -67,7 +99,6 @@ class W3BA_InventoryNarrator
             text += rarity + " quality. ";
         }
 
-        // Append all stat lines
         for (i = 0; i < stats.Size(); i += 1)
         {
             text += stats[i] + ". ";
@@ -95,7 +126,7 @@ class W3BA_InventoryNarrator
     public function NarrateComparison(
         itemName       : String,
         primaryStat    : String,
-        comparisons    : array<String>  // e.g. ["Plus 12 damage", "Minus 5% critical chance"]
+        comparisons    : array<String>
     )
     {
         var text : String;
@@ -128,6 +159,42 @@ class W3BA_InventoryNarrator
     }
 
     // ---------------------------------------------------------------
+    // Quick status report (callable from hotkey)
+    // ---------------------------------------------------------------
+
+    public function NarrateEquipmentStatus()
+    {
+        var inv : CInventoryComponent;
+        var text : String;
+        var items : array<SItemUniqueId>;
+        var i : Int32;
+        var equippedCount : Int32;
+        var totalCount : Int32;
+
+        inv = thePlayer.GetInventory();
+        if (!inv)
+        {
+            ttsBridge.Speak("Inventory unavailable.", true, 2);
+            return;
+        }
+
+        inv.GetAllItems(items);
+        totalCount = items.Size();
+        equippedCount = 0;
+
+        for (i = 0; i < items.Size(); i += 1)
+        {
+            if (inv.IsItemEquipped(items[i]))
+            {
+                equippedCount += 1;
+            }
+        }
+
+        text = totalCount + " items in inventory, " + equippedCount + " equipped.";
+        ttsBridge.Speak(text, true, 2);
+    }
+
+    // ---------------------------------------------------------------
     // Rarity helper
     // ---------------------------------------------------------------
 
@@ -136,11 +203,11 @@ class W3BA_InventoryNarrator
         switch (rarityLevel)
         {
             case 0: return "Common";
-            case 1: return "Master";
-            case 2: return "Magic";
-            case 3: return "Rare";
-            case 4: return "Relic";
-            case 5: return "Witcher";
+            case 1: return "Common";
+            case 2: return "Master";
+            case 3: return "Magic";
+            case 4: return "Rare";
+            case 5: return "Relic";
             default: return "Unknown";
         }
     }
