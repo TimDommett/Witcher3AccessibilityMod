@@ -1,5 +1,5 @@
 // W3BlindAccess - Combat Audio Cues
-// Translates combat events into spatial audio feedback
+// Translates combat events into spatial audio feedback and TTS announcements
 
 class W3BA_CombatCues
 {
@@ -16,6 +16,10 @@ class W3BA_CombatCues
     // How often to re-ping enemy positions (seconds)
     private var enemyPingInterval : Float;
 
+    // Throttle TTS during combat to avoid speech overload
+    private var lastCombatSpeechTime : Float;
+    private var combatSpeechCooldown : Float;
+
     // ---------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------
@@ -31,6 +35,8 @@ class W3BA_CombatCues
         criticalHealthWarningActive = false;
         enemyPositionUpdateTimer    = 0.0;
         enemyPingInterval           = 1.5;
+        lastCombatSpeechTime        = 0.0;
+        combatSpeechCooldown        = 0.5;
     }
 
     // ---------------------------------------------------------------
@@ -42,24 +48,61 @@ class W3BA_CombatCues
         if (!config.IsCombatAudioEnabled()) { return; }
         if (!combatMonitor.IsInCombat()) { return; }
 
+        lastCombatSpeechTime += deltaTime;
         UpdateEnemyPositionPings(deltaTime);
     }
 
     // ---------------------------------------------------------------
-    // Combat event handlers (called from event system)
+    // Combat event handlers (called from CombatMonitor + PlayerHook)
     // ---------------------------------------------------------------
 
     public function OnCombatStarted(enemyCount : Int32)
     {
+        var text : String;
+
         audioManager.PlayCue("enemy_detected");
-        ttsBridge.Speak(enemyCount + " enemies.", false, 2);
+
+        if (enemyCount == 1)
+        {
+            text = "1 enemy.";
+        }
+        else
+        {
+            text = enemyCount + " enemies.";
+        }
+        ttsBridge.Speak(text, false, 2);
+        lastCombatSpeechTime = 0.0;
     }
 
     public function OnCombatEnded()
     {
         lowHealthWarningActive      = false;
         criticalHealthWarningActive = false;
+        enemyPositionUpdateTimer    = 0.0;
         ttsBridge.Speak("Combat ended.", false, 1);
+    }
+
+    public function OnNewEnemiesDetected(newCount : Int32)
+    {
+        var text : String;
+
+        if (!config.IsCombatAudioEnabled()) { return; }
+
+        audioManager.PlayCue("enemy_detected");
+
+        if (CanSpeakCombat())
+        {
+            if (newCount == 1)
+            {
+                text = "New enemy!";
+            }
+            else
+            {
+                text = newCount + " new enemies!";
+            }
+            ttsBridge.Speak(text, false, 2);
+            lastCombatSpeechTime = 0.0;
+        }
     }
 
     public function OnEnemyAttackLight(enemyPosition : Vector)
@@ -75,6 +118,11 @@ class W3BA_CombatCues
     public function OnEnemyAttackUnblockable(enemyPosition : Vector)
     {
         audioManager.PlayCue3D("enemy_attack_unblockable", enemyPosition, 1.0);
+        if (CanSpeakCombat())
+        {
+            ttsBridge.Speak("Dodge!", true, 3);
+            lastCombatSpeechTime = 0.0;
+        }
     }
 
     public function OnPlayerHit(damage : Float)
@@ -116,13 +164,21 @@ class W3BA_CombatCues
     public function OnTargetLocked(targetName : String, targetPosition : Vector)
     {
         audioManager.PlayCue3D("enemy_detected", targetPosition, 1.0);
-        ttsBridge.Speak("Locked: " + targetName, true, 2);
+        if (CanSpeakCombat())
+        {
+            ttsBridge.Speak("Locked: " + targetName, true, 2);
+            lastCombatSpeechTime = 0.0;
+        }
     }
 
     public function OnTargetChanged(newTargetName : String, newTargetPosition : Vector)
     {
         audioManager.PlayCue3D("enemy_detected", newTargetPosition, 1.2);
-        ttsBridge.Speak("Target: " + newTargetName, true, 2);
+        if (CanSpeakCombat())
+        {
+            ttsBridge.Speak("Target: " + newTargetName, true, 2);
+            lastCombatSpeechTime = 0.0;
+        }
     }
 
     // ---------------------------------------------------------------
@@ -131,15 +187,30 @@ class W3BA_CombatCues
 
     private function UpdateEnemyPositionPings(deltaTime : Float)
     {
+        var enemies : array<CActor>;
+        var i : Int32;
+
         enemyPositionUpdateTimer += deltaTime;
         if (enemyPositionUpdateTimer < enemyPingInterval) { return; }
         enemyPositionUpdateTimer = 0.0;
 
-        // TODO: For each tracked enemy, play a quiet spatial cue
-        // var enemies : array<CActor> = combatMonitor.GetTrackedEnemies();
-        // for (i = 0; i < enemies.Size(); i += 1)
-        // {
-        //     audioManager.PlayCue3D("enemy_detected", enemies[i].GetWorldPosition(), 0.5);
-        // }
+        enemies = combatMonitor.GetTrackedEnemies();
+        for (i = 0; i < enemies.Size(); i += 1)
+        {
+            if (enemies[i] && enemies[i].IsAlive())
+            {
+                audioManager.PlayCue3D("enemy_detected", enemies[i].GetWorldPosition(), 0.5);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------
+
+    // Prevent TTS speech from being too frequent during combat
+    private function CanSpeakCombat() : Bool
+    {
+        return lastCombatSpeechTime >= combatSpeechCooldown;
     }
 }

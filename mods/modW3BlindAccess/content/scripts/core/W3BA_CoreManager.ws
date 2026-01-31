@@ -61,6 +61,9 @@ class W3BA_CoreManager
         combatCues = new W3BA_CombatCues in this;
         combatCues.Initialize(config, audioManager, ttsBridge, combatMonitor);
 
+        // Wire combat monitor to route events directly to cues
+        combatMonitor.SetCombatCues(combatCues);
+
         // UI subsystem
         menuNarrator = new W3BA_MenuNarrator in this;
         menuNarrator.Initialize(ttsBridge, audioManager);

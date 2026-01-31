@@ -17,17 +17,18 @@ Full mod directory structure and WitcherScript module stubs for all 4 subsystems
 | Module | File | Status | Notes |
 |--------|------|--------|-------|
 | **Init** | `scripts/local/W3BA_Init.ws` | **Implemented** | Global singleton, lazy init, audio cue constants, convenience functions |
-| **Core Manager** | `scripts/core/W3BA_CoreManager.ws` | Scaffolded | Initializes all modules, runs per-frame `Update()`, exposes accessors |
+| **Core Manager** | `scripts/core/W3BA_CoreManager.ws` | **Implemented** | Initializes all modules, runs per-frame `Update()`, wires combat events |
 | **Config** | `scripts/core/W3BA_Config.ws` | **Implemented** | Persistence via `user.settings` INI using `CInGameConfigWrapper` |
-| **Events** | `scripts/core/W3BA_Events.ws` | Scaffolded | Event enums, typed data structs, emit stubs. No listener registration yet. |
+| **Events** | `scripts/core/W3BA_Events.ws` | Scaffolded | Event enums, typed data structs, emit stubs. Direct routing used instead. |
 | **TTS Bridge** | `scripts/tts/W3BA_TTSBridge.ws` | **Implemented** | File-based IPC via `LogChannel('W3BA', ...)` to ASI plugin. Deduplication. |
 | **Speech Queue** | `scripts/tts/W3BA_SpeechQueue.ws` | **Implemented** | Priority-sorted queue with `Enqueue`, `Dequeue`, `Peek`, `Clear`. |
 | **Audio Manager** | `scripts/audio/W3BA_AudioManager.ws` | Scaffolded | `PlayCue()`, `PlayCue3D()`, beacon start/stop. Wwise integration TODO. |
 | **Spatial Audio** | `scripts/audio/W3BA_SpatialAudio.ws` | **Implemented** | Cardinal direction (relative + compass), distance, `MapRange()`. |
-| **Navigation Beacon** | `scripts/navigation/W3BA_Beacon.ws` | Scaffolded | Beacon toggle, interval ping, pitch-by-distance. Waypoint extraction TODO. |
-| **Object Tracker** | `scripts/navigation/W3BA_ObjectTracker.ws` | Scaffolded | Category enum, scan loop, cycle next/prev, filter. Game query TODO. |
-| **Combat Monitor** | `scripts/combat/W3BA_CombatMonitor.ws` | Scaffolded | Combat state check, enemy list, health monitoring. Game hooks TODO. |
-| **Combat Cues** | `scripts/combat/W3BA_CombatCues.ws` | Scaffolded | All combat event handlers, health warnings. Monitor wiring TODO. |
+| **Player Hook** | `scripts/game/player/W3BA_PlayerHook.ws` | **Implemented** | Timer-based tick loop, combat damage hook, target change hook |
+| **Navigation Beacon** | `scripts/navigation/W3BA_Beacon.ws` | **Implemented** | Beacon toggle, interval ping, pitch-by-distance, direction. Waypoint API TODO. |
+| **Object Tracker** | `scripts/navigation/W3BA_ObjectTracker.ws` | **Implemented** | Entity scanning, category classification, distance sort, direction |
+| **Combat Monitor** | `scripts/combat/W3BA_CombatMonitor.ws` | **Implemented** | Real combat detection, enemy tracking, health monitoring, target tracking |
+| **Combat Cues** | `scripts/combat/W3BA_CombatCues.ws` | **Implemented** | Enemy pings, health warnings, target announcements, speech throttling |
 | **Menu Narrator** | `scripts/ui/W3BA_MenuNarrator.ws` | Scaffolded | Menu/dialogue/save TTS narration templates. |
 | **Inventory Narrator** | `scripts/ui/W3BA_InventoryNarrator.ws` | Scaffolded | Brief/detail/comparison/consumable narration. Item data extraction TODO. |
 
@@ -70,6 +71,47 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 
 ---
 
+### Phase 2: Core Gameplay (Done — code written, needs in-game testing)
+
+#### Player Hook (`W3BA_PlayerHook.ws`) — NEW
+- Hooks `CR4Player.OnSpawned()` to register a repeating timer at 10 Hz
+- Timer calls `CoreManager.Update(dt)` each tick for combat, beacon, object tracker
+- Hooks `CR4Player.ReactToBeingHit()` to detect player damage → routes to combat cues
+- Hooks `CR4Player.SetTarget()` to detect target changes → announces target name
+- "In game" TTS announcement when player spawns
+
+#### Combat Monitor — Real Game API Integration
+- `thePlayer.IsInCombat()` for combat state detection (enter/exit)
+- `FindGameplayEntitiesInRange()` + hostility filter for enemy tracking
+- `thePlayer.GetStatPercents(BCS_Vitality)` for health monitoring
+- `thePlayer.GetTarget()` for target lock tracking
+- Direct event routing to CombatCues (no event bus needed)
+
+#### Combat Cues — Fully Wired
+- Combat start/end announcements with enemy count
+- New enemy detection announcements
+- Enemy position pings every 1.5s using spatial audio
+- Health threshold warnings (low ≤25%, critical ≤10%)
+- Target lock/change announcements with name
+- TTS speech throttling (0.5s cooldown) to prevent overload
+- Unblockable attack dodge warning
+
+#### Navigation Beacon — Enhanced
+- Waypoint caching (refreshes every 2s) to reduce per-tick overhead
+- Player-relative direction (ahead/behind/left/right) + compass direction
+- Distance-based pitch modulation for beacon ping
+- Structure ready for waypoint API — currently returns zero (see TODO below)
+
+#### Object Tracker — Real Entity Scanning
+- `FindGameplayEntitiesInRange()` for spatial queries within configurable radius
+- Entity classification by type: NPC (via `CNewNPC` cast), containers, herbs, doors, loot, clues, crafting (via entity tags)
+- Hostile NPC filtering (handled by combat monitor instead)
+- `GetDisplayName()` for entity names with fallback to category
+- Distance-sorted results with insertion sort
+- Player-relative direction announcements (ahead/left/right/behind)
+
+---
+
 ## What's NOT Fully Implemented Yet
 
 ### Remaining TODOs in Phase 1 Files
@@ -94,13 +136,36 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 
 6. **ASI plugin not compiled** — C++ source is written but needs Windows build environment
 
-### Phase 2+ TODO Items (Unchanged from Scaffold)
+### Phase 2 Remaining TODOs
 
-- Quest waypoint extraction (`W3BA_Beacon.ws`)
-- Game interactable spatial queries (`W3BA_ObjectTracker.ws`)
-- Combat state hooks into `r4Player.ws` / `CActor` (`W3BA_CombatMonitor.ws`)
-- Wwise soundbank creation and integration (`W3BA_AudioManager.ws`)
-- Event listener registration pattern (`W3BA_Events.ws`)
+1. **Quest waypoint position extraction** (HIGHEST PRIORITY)
+   - `W3BA_Beacon.TryGetQuestObjectivePosition()` returns zero — needs real API
+   - Candidates: `CCommonMapManager.GetEntityMapPins()`, journal manager quest tracking
+   - Without this, the navigation beacon can't guide the player
+
+2. **Dodge/parry hook verification**
+   - `CR4Player.PerformDodge()` hook is commented out — needs method signature verification
+   - Parry detection not yet hooked
+
+3. **Entity tag verification for object tracker**
+   - Entity tags like `'container'`, `'herb'`, `'door'` are assumed — need verification
+   - May need direct class casts (`W3Container`, `W3Herb`) instead of tag checks
+
+4. **Attack wind-up detection**
+   - CombatMonitor doesn't detect enemy attack animations yet
+   - Need to check `CActor` for attack state methods (e.g., `IsAttacking()`, `GetCurrentActionType()`)
+
+5. **Wwise soundbank** — still no `.bnk` file; audio cues are silent
+6. **ASI plugin not compiled** — C++ source is written but needs Windows build
+
+### Phase 3+ TODO Items
+
+- Full inventory narration with item data extraction
+- Equipment comparison
+- Crafting/alchemy narration
+- Bestiary accessibility
+- Audio cue glossary / tutorial
+- Accessibility config menu with hotkeys
 
 ---
 
@@ -120,13 +185,22 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 - [ ] In-game testing and Flash API verification
 - [ ] Wwise soundbank creation
 
-### Phase 2: Core Gameplay
-- [ ] Quest waypoint audio beacon
-- [ ] Distance/direction announcements
-- [ ] Combat state monitoring + audio cues
-- [ ] Attack warning system
-- [ ] Interactable object detection
-- [ ] Health/status audio feedback
+### Phase 2: Core Gameplay — DONE (code written, needs in-game testing)
+- [x] Player hook with timer-based update loop
+- [x] Combat state monitoring (enter/exit detection)
+- [x] Enemy tracking via spatial entity queries
+- [x] Health monitoring with threshold warnings
+- [x] Target lock/change announcements
+- [x] Enemy position spatial audio pings
+- [x] Player damage detection hook
+- [x] Combat speech throttling
+- [x] Navigation beacon system (structure + direction)
+- [x] Object tracker with entity scanning + classification
+- [x] Distance/direction announcements (relative + compass)
+- [ ] Quest waypoint position extraction (API verification needed)
+- [ ] Attack wind-up warning system (needs animation state access)
+- [ ] Dodge/parry detection hooks (method signatures unverified)
+- [ ] Wwise soundbank creation
 
 ### Phase 3: Full System Access
 - [ ] Full inventory narration
@@ -326,6 +400,8 @@ mods/modW3BlindAccess/
 │   │   ├── ui/
 │   │   │   ├── W3BA_MenuNarrator.ws
 │   │   │   └── W3BA_InventoryNarrator.ws
+│   │   ├── game/player/
+│   │   │   └── W3BA_PlayerHook.ws    # Timer tick, combat hooks, target hooks
 │   │   └── game/gui/menus/       # Game class hooks (@wrapMethod)
 │   │       ├── W3BA_MainMenuHook.ws
 │   │       ├── W3BA_IngameMenuHook.ws
