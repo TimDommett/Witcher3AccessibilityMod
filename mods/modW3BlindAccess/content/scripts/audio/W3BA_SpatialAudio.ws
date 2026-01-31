@@ -21,14 +21,20 @@ class W3BA_SpatialAudio
     // Returns the cardinal direction string from player to a target position
     public function GetCardinalDirection(targetPosition : Vector) : String
     {
-        var playerPos   : Vector = thePlayer.GetWorldPosition();
-        var playerRot   : EulerAngles = thePlayer.GetWorldRotation();
-        var toTarget    : Vector = targetPosition - playerPos;
+        var playerPos     : Vector;
+        var playerRot     : EulerAngles;
+        var toTarget      : Vector;
+        var angle         : Float;
+        var relativeAngle : Float;
+
+        playerPos     = thePlayer.GetWorldPosition();
+        playerRot     = thePlayer.GetWorldRotation();
+        toTarget      = targetPosition - playerPos;
 
         // Get angle in world space
-        var angle : Float = Atan2(toTarget.Y, toTarget.X);
+        angle = Atan2(toTarget.Y, toTarget.X);
         // Convert to degrees relative to player facing
-        var relativeAngle : Float = angle - playerRot.Yaw;
+        relativeAngle = angle - playerRot.Yaw;
 
         // Normalize to 0-360
         while (relativeAngle < 0)    { relativeAngle += 360.0; }
@@ -48,10 +54,14 @@ class W3BA_SpatialAudio
     // Returns compass cardinal direction (north/south/east/west)
     public function GetCompassDirection(targetPosition : Vector) : String
     {
-        var playerPos : Vector = thePlayer.GetWorldPosition();
-        var toTarget  : Vector = targetPosition - playerPos;
+        var playerPos : Vector;
+        var toTarget  : Vector;
+        var angle     : Float;
 
-        var angle : Float = Atan2(toTarget.Y, toTarget.X);
+        playerPos = thePlayer.GetWorldPosition();
+        toTarget  = targetPosition - playerPos;
+
+        angle = Atan2(toTarget.Y, toTarget.X);
         // Normalize to 0-360
         while (angle < 0)    { angle += 360.0; }
         while (angle >= 360) { angle -= 360.0; }
@@ -75,7 +85,8 @@ class W3BA_SpatialAudio
     // Maps a value from one range to another (utility)
     public function MapRange(value : Float, inMin : Float, inMax : Float, outMin : Float, outMax : Float) : Float
     {
-        var clamped : Float = ClampF(value, inMin, inMax);
+        var clamped : Float;
+        clamped = ClampF(value, inMin, inMax);
         return outMin + (outMax - outMin) * ((clamped - inMin) / (inMax - inMin));
     }
 }

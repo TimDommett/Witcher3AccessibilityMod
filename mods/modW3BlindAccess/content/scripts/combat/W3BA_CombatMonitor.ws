@@ -63,10 +63,11 @@ class W3BA_CombatMonitor
 
     private function OnCombatEntered()
     {
+        var data : W3BA_CombatEventData;
+
         inCombat = true;
         RefreshEnemyList();
 
-        var data : W3BA_CombatEventData;
         data.enemyCount = trackedEnemies.Size();
         events.EmitCombatStarted(data);
     }

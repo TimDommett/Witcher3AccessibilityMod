@@ -165,7 +165,7 @@ class W3BA_ObjectTracker
         if (currentIndex < 0 || currentIndex >= nearbyObjects.Size()) { return; }
 
         obj = nearbyObjects[currentIndex];
-        text = obj.objectName + ", " + RoundF(obj.distance) + " meters, ";
+        text = obj.objectName + ", " + RoundMath(obj.distance) + " meters, ";
         // TODO: append relative direction from W3BA_SpatialAudio
         text += "nearby";
 

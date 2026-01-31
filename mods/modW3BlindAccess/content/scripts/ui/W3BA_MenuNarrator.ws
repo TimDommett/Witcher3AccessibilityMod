@@ -27,11 +27,13 @@ class W3BA_MenuNarrator
 
     public function OnMenuOpened(menuId : String)
     {
+        var menuName : String;
+
         if (menuId == lastMenuId) { return; }
         lastMenuId    = menuId;
         lastItemIndex = -1;
 
-        var menuName : String = GetMenuDisplayName(menuId);
+        menuName = GetMenuDisplayName(menuId);
         ttsBridge.Speak(menuName + " menu.", true, 2);
         audioManager.PlayCue("ui_menu_select");
     }
@@ -87,9 +89,11 @@ class W3BA_MenuNarrator
 
     public function OnDialogueChoicesPresented(choices : array<String>)
     {
+        var text : String;
+
         if (choices.Size() == 0) { return; }
 
-        var text : String = choices.Size() + " dialogue options. ";
+        text = choices.Size() + " dialogue options. ";
         text += "1: " + choices[0];
         ttsBridge.Speak(text, true, 2);
     }
@@ -106,7 +110,8 @@ class W3BA_MenuNarrator
 
     public function OnSaveSlotFocused(slotName : String, dateTime : String, playTime : String)
     {
-        var text : String = slotName;
+        var text : String;
+        text = slotName;
         if (dateTime != "") { text += ". " + dateTime; }
         if (playTime != "") { text += ". Play time: " + playTime; }
         ttsBridge.Speak(text, true, 2);

@@ -116,7 +116,8 @@ class W3BA_Config
 
     private function ReadBool(config : CInGameConfigWrapper, key : CName, defaultVal : Bool) : Bool
     {
-        var raw : String = config.GetVarValue(sectionName, key);
+        var raw : String;
+        raw = config.GetVarValue(sectionName, key);
         if (raw == "")       { return defaultVal; }
         if (raw == "true")   { return true; }
         if (raw == "1")      { return true; }
@@ -125,14 +126,16 @@ class W3BA_Config
 
     private function ReadInt(config : CInGameConfigWrapper, key : CName, defaultVal : Int32) : Int32
     {
-        var raw : String = config.GetVarValue(sectionName, key);
+        var raw : String;
+        raw = config.GetVarValue(sectionName, key);
         if (raw == "") { return defaultVal; }
         return StringToInt(raw);
     }
 
     private function ReadFloat(config : CInGameConfigWrapper, key : CName, defaultVal : Float) : Float
     {
-        var raw : String = config.GetVarValue(sectionName, key);
+        var raw : String;
+        raw = config.GetVarValue(sectionName, key);
         if (raw == "") { return defaultVal; }
         return StringToFloat(raw);
     }

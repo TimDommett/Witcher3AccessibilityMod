@@ -21,7 +21,8 @@ class W3BA_InventoryNarrator
     public function NarrateItemBrief(itemName : String, isEquipped : Bool, primaryStat : String)
     {
         // Format: "Steel Sword, Equipped, 85 damage"
-        var text : String = itemName;
+        var text : String;
+        text = itemName;
 
         if (isEquipped)
         {
@@ -56,7 +57,10 @@ class W3BA_InventoryNarrator
         //          Currently equipped in steel sword slot.
         //          Description: A blade forged by Witchers of the Viper school."
 
-        var text : String = itemName + ". ";
+        var text : String;
+        var i : Int32;
+
+        text = itemName + ". ";
 
         if (rarity != "")
         {
@@ -64,7 +68,6 @@ class W3BA_InventoryNarrator
         }
 
         // Append all stat lines
-        var i : Int32;
         for (i = 0; i < stats.Size(); i += 1)
         {
             text += stats[i] + ". ";
@@ -95,10 +98,11 @@ class W3BA_InventoryNarrator
         comparisons    : array<String>  // e.g. ["Plus 12 damage", "Minus 5% critical chance"]
     )
     {
-        var text : String = itemName + ". " + primaryStat + ". ";
-        text += "Compared to equipped: ";
-
+        var text : String;
         var i : Int32;
+
+        text = itemName + ". " + primaryStat + ". ";
+        text += "Compared to equipped: ";
         for (i = 0; i < comparisons.Size(); i += 1)
         {
             text += comparisons[i];
@@ -115,7 +119,8 @@ class W3BA_InventoryNarrator
 
     public function NarrateConsumable(itemName : String, count : Int32, effect : String)
     {
-        var text : String = itemName;
+        var text : String;
+        text = itemName;
         if (count > 1) { text += ", " + count + " in stack"; }
         if (effect != "") { text += ". Effect: " + effect; }
 

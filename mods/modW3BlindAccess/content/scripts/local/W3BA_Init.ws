@@ -68,7 +68,7 @@ function W3BA_EnsureInitialized()
 {
     if (!theGame.w3ba_coreManager)
     {
-        theGame.w3ba_coreManager = new W3BA_CoreManager;
+        theGame.w3ba_coreManager = new W3BA_CoreManager in theGame;
         theGame.w3ba_coreManager.Initialize();
     }
 }

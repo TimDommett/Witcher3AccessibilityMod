@@ -179,6 +179,51 @@ WitcherScript                          ASI Plugin (in-process)
 3. **Singleton with lazy init** — handles unpredictable game initialization order
 4. **CInGameConfigWrapper** for config — uses the game's native settings system
 
+## WitcherScript Syntax Rules (Learned from Compilation)
+
+These rules were discovered through in-game compilation testing. Follow them strictly:
+
+1. **No file-level `const` or `var`** — WitcherScript does not allow variable or constant declarations at file scope. Use `@addField(ClassName)` to attach state to game classes, or wrap constants in functions: `function MY_CONST() : String { return "value"; }`
+
+2. **`@wrapMethod` must use `function`, not `event`** — Even if the original method is declared as an event (e.g., Flash callbacks like `OnConfigUI`), the `@wrapMethod` wrapper must use the `function` keyword.
+
+3. **Reserved keywords cannot be used as identifiers** — These words cause compilation errors when used as variable names, struct fields, or function parameters:
+   - `entry`, `name`, `parent`, `state`, `out`, `in`
+   - Use alternatives like `speechItem` instead of `entry`, `objectName` instead of `name`
+
+4. **All `var` declarations must be at the TOP of function bodies** — Before any executable statements (assignments, function calls, if/return, etc.). This is the most common error source.
+   ```
+   // WRONG:
+   function Foo() {
+       DoSomething();
+       var x : Int32;     // ERROR: var after executable
+   }
+
+   // CORRECT:
+   function Foo() {
+       var x : Int32;
+       DoSomething();
+   }
+   ```
+
+5. **No inline variable initialization** — `var x : Int32 = 5;` is invalid. Split into declaration then assignment:
+   ```
+   // WRONG:
+   var x : Int32 = 5;
+
+   // CORRECT:
+   var x : Int32;
+   x = 5;
+   ```
+
+6. **`new ClassName` requires `in ownerObject`** — Object instantiation must specify an owner: `new W3BA_Config in this` or `new W3BA_CoreManager in theGame`.
+
+7. **`RoundF()` does not exist** — Use `RoundMath()` for rounding floats to integers.
+
+8. **Mod folder naming** — The mod folder must start with `mod` prefix (e.g., `modW3BlindAccess`) or the game ignores it entirely.
+
+---
+
 ## Key Technical Risks
 
 1. **ASI plugin log parsing** — `scriptslog.txt` write frequency and buffering behavior needs testing; may need to hook the log write function directly in the ASI plugin instead of polling the file
