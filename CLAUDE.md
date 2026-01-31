@@ -192,10 +192,11 @@ A debug overlay has been added so you can visually verify all hook wiring withou
 
 ### Installation Steps
 
-1. Copy the entire `mods/W3BlindAccess/` folder into your Witcher 3 installation's `Mods/` directory:
+1. Copy the entire `mods/modW3BlindAccess/` folder into your Witcher 3 installation's `Mods/` directory:
    ```
-   <Witcher 3 Install>/Mods/W3BlindAccess/
+   <Witcher 3 Install>/Mods/modW3BlindAccess/
    ```
+   **Important**: The folder name must start with `mod` or the game will ignore it.
 2. Launch the game. The Script Compiler will compile the WitcherScript files on startup.
 
 ### What to Check
@@ -251,7 +252,7 @@ Or via the debug console: the `SetDebugOverlay(false)` method on the TTSBridge.
 ## File Tree
 
 ```
-mods/W3BlindAccess/
+mods/modW3BlindAccess/
 ├── asi_plugin/
 │   ├── CMakeLists.txt
 │   ├── BUILD.md
