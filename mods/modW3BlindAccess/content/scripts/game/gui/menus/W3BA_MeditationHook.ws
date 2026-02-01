@@ -1,14 +1,14 @@
 // W3BlindAccess - Meditation Menu Hook
-// Wraps CR4MeditationClockMenu to narrate the current time and time selection.
+// Wraps CR4MeditationMenu to narrate the current time and time selection.
 
-@addField(CR4MeditationClockMenu)
+@addField(CR4MeditationMenu)
 var w3ba_lastMeditationHour : int;
 
 // ---------------------------------------------------------------
 // Menu open — announce current game time
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationClockMenu)
+@wrapMethod(CR4MeditationMenu)
 function OnConfigUI()
 {
     var gameHour : Int32;
@@ -32,7 +32,7 @@ function OnConfigUI()
 // Input handling — detect time selection changes
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationClockMenu)
+@wrapMethod(CR4MeditationMenu)
 function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 {
     wrappedMethod(NavCode, KeyCode, ActionId);
@@ -43,7 +43,7 @@ function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
 // Menu close
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationClockMenu)
+@wrapMethod(CR4MeditationMenu)
 function OnCloseMenu()
 {
     wrappedMethod();
@@ -54,7 +54,7 @@ function OnCloseMenu()
 // Time narration
 // ---------------------------------------------------------------
 
-function W3BA_NarrateMeditationTime(menu : CR4MeditationClockMenu)
+function W3BA_NarrateMeditationTime(menu : CR4MeditationMenu)
 {
     var selectedHour : int;
 
