@@ -1,14 +1,13 @@
 // W3BlindAccess - Meditation Menu Hook
-// Wraps CR4MeditationMenu to narrate the current time and time selection.
-
-@addField(CR4MeditationMenu)
-var w3ba_lastMeditationHour : int;
+// Wraps CR4MeditationClockMenu to narrate the current time.
+// CR4MeditationClockMenu has OnConfigUI, OnCloseMenu, OnMeditate
+// but not OnInputHandled or OnTabChanged.
 
 // ---------------------------------------------------------------
 // Menu open — announce current game time
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationMenu)
+@wrapMethod(CR4MeditationClockMenu)
 function OnConfigUI()
 {
     var gameHour : Int32;
@@ -16,9 +15,6 @@ function OnConfigUI()
 
     wrappedMethod();
 
-    w3ba_lastMeditationHour = -1;
-
-    // Announce current in-game time
     gameHour = GameTimeHours(theGame.GetGameTime());
 
     text = "Meditation. Current time: " + W3BA_HourToTimeString(gameHour) + ". ";
@@ -29,21 +25,25 @@ function OnConfigUI()
 }
 
 // ---------------------------------------------------------------
-// Input handling — detect time selection changes
+// Meditate — announce target time
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationMenu)
-function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+@wrapMethod(CR4MeditationClockMenu)
+function OnMeditate(dayTime : float)
 {
-    wrappedMethod(NavCode, KeyCode, ActionId);
-    W3BA_NarrateMeditationTime(this);
+    var targetHour : Int32;
+
+    wrappedMethod(dayTime);
+
+    targetHour = (int)dayTime;
+    W3BA_SpeakText("Meditating until " + W3BA_HourToTimeString(targetHour), true, 2);
 }
 
 // ---------------------------------------------------------------
 // Menu close
 // ---------------------------------------------------------------
 
-@wrapMethod(CR4MeditationMenu)
+@wrapMethod(CR4MeditationClockMenu)
 function OnCloseMenu()
 {
     wrappedMethod();
@@ -51,25 +51,8 @@ function OnCloseMenu()
 }
 
 // ---------------------------------------------------------------
-// Time narration
+// Time formatting helper
 // ---------------------------------------------------------------
-
-function W3BA_NarrateMeditationTime(menu : CR4MeditationMenu)
-{
-    var selectedHour : int;
-
-    selectedHour = menu.GetCurrentMenuItemIndex();
-    if (selectedHour == menu.w3ba_lastMeditationHour) { return; }
-    menu.w3ba_lastMeditationHour = selectedHour;
-
-    // The meditation clock lets you select an hour (0-23)
-    // selectedHour should correspond to the target hour
-    if (selectedHour >= 0 && selectedHour < 24)
-    {
-        W3BA_SpeakText("Meditate until " + W3BA_HourToTimeString(selectedHour), true, 2);
-        W3BA_PlayCue("ui_menu_focus");
-    }
-}
 
 function W3BA_HourToTimeString(hour : Int32) : String
 {

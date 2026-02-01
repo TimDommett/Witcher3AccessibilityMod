@@ -1,11 +1,9 @@
 // W3BlindAccess - Character Menu Hook
-// Wraps CR4CharacterMenu to narrate skills, abilities, and character stats.
+// Wraps CR4CharacterMenu to narrate skill tab changes.
+// CR4CharacterMenu has OnTabChanged but not OnInputHandled.
 
 @addField(CR4CharacterMenu)
 var w3ba_lastCharTabIndex : int;
-
-@addField(CR4CharacterMenu)
-var w3ba_lastCharItemIndex : int;
 
 // ---------------------------------------------------------------
 // Menu open
@@ -16,25 +14,13 @@ function OnConfigUI()
 {
     wrappedMethod();
 
-    w3ba_lastCharTabIndex  = -1;
-    w3ba_lastCharItemIndex = -1;
+    w3ba_lastCharTabIndex = -1;
     W3BA_SpeakText("Character.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 }
 
 // ---------------------------------------------------------------
-// Input handling
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4CharacterMenu)
-function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
-{
-    wrappedMethod(NavCode, KeyCode, ActionId);
-    W3BA_NarrateCharacterItem(this);
-}
-
-// ---------------------------------------------------------------
-// Tab changes (e.g., Skills, Mutagens, General)
+// Tab changes (Combat, Signs, Alchemy, General, Mutagens)
 // ---------------------------------------------------------------
 
 @wrapMethod(CR4CharacterMenu)
@@ -45,8 +31,7 @@ function OnTabChanged(tabIndex : int)
     wrappedMethod(tabIndex);
 
     if (tabIndex == w3ba_lastCharTabIndex) { return; }
-    w3ba_lastCharTabIndex  = tabIndex;
-    w3ba_lastCharItemIndex = -1;
+    w3ba_lastCharTabIndex = tabIndex;
 
     switch (tabIndex)
     {
@@ -71,26 +56,4 @@ function OnCloseMenu()
 {
     wrappedMethod();
     W3BA_PlayCue("ui_menu_back");
-}
-
-// ---------------------------------------------------------------
-// Item narration
-// ---------------------------------------------------------------
-
-function W3BA_NarrateCharacterItem(menu : CR4CharacterMenu)
-{
-    var currentIndex : int;
-
-    currentIndex = menu.GetCurrentMenuItemIndex();
-    if (currentIndex == menu.w3ba_lastCharItemIndex) { return; }
-    menu.w3ba_lastCharItemIndex = currentIndex;
-
-    // Character menu items are skill slots.
-    // The exact API for reading skill names/descriptions varies.
-    // For now, announce the index. Flash may provide the actual text.
-    // TODO: Extract skill name and level from thePlayer.GetSkillByIndex()
-    //       or thePlayer.GetCharacterStats()
-
-    W3BA_SpeakText("Skill " + (currentIndex + 1), true, 2);
-    W3BA_PlayCue("ui_menu_focus");
 }

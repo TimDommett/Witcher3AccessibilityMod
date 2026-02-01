@@ -1,10 +1,6 @@
 // W3BlindAccess - Map Menu Hook
-// Wraps CR4MapMenu to narrate current location, POIs, and waypoint placement.
-// The visual map is inaccessible to blind players, so we provide a text-based
-// summary of the player's location and nearby points of interest.
-
-@addField(CR4MapMenu)
-var w3ba_mapAnnounced : bool;
+// Wraps CR4MapMenu to narrate current location.
+// CR4MapMenu has OnEntrySelected but not OnInputHandled.
 
 // ---------------------------------------------------------------
 // Menu open — announce current location
@@ -15,7 +11,6 @@ function OnConfigUI()
 {
     wrappedMethod();
 
-    w3ba_mapAnnounced = false;
     W3BA_SpeakText("Map.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 
@@ -23,22 +18,16 @@ function OnConfigUI()
 }
 
 // ---------------------------------------------------------------
-// Input handling
+// Entry selected — a map pin was selected
 // ---------------------------------------------------------------
 
 @wrapMethod(CR4MapMenu)
-function OnInputHandled(NavCode : string, KeyCode : int, ActionId : int)
+function OnEntrySelected(tag : name)
 {
-    wrappedMethod(NavCode, KeyCode, ActionId);
+    wrappedMethod(tag);
 
-    // The map menu is primarily visual. Navigation is limited to
-    // panning/zooming which isn't useful for blind players.
-    // We focus on providing location info when the map opens.
-    if (!w3ba_mapAnnounced)
-    {
-        W3BA_AnnounceMapLocation();
-        w3ba_mapAnnounced = true;
-    }
+    W3BA_SpeakText("" + tag, true, 2);
+    W3BA_PlayCue("ui_menu_focus");
 }
 
 // ---------------------------------------------------------------
@@ -66,16 +55,10 @@ function W3BA_AnnounceMapLocation()
 
     playerPos = thePlayer.GetWorldPosition();
 
-    // Get current area/region name
     areaName = W3BA_GetCurrentAreaName();
 
     text = "Current location: " + areaName + ". ";
     text += "Position: " + RoundMath(playerPos.X) + ", " + RoundMath(playerPos.Y) + ". ";
-
-    // TODO: List nearby discovered POIs from map manager
-    // var mapManager : CCommonMapManager;
-    // mapManager = theGame.GetCommonMapManager();
-    // Iterate known map pins near player and list them
 
     W3BA_SpeakText(text, false, 2);
 }
