@@ -2,9 +2,6 @@
 // Wraps CR4CharacterMenu to narrate skill tab changes.
 // CR4CharacterMenu has OnTabChanged but not OnInputHandled.
 
-@addField(CR4CharacterMenu)
-var w3ba_lastCharTabIndex : int;
-
 // ---------------------------------------------------------------
 // Menu open
 // ---------------------------------------------------------------
@@ -14,7 +11,6 @@ function OnConfigUI()
 {
     wrappedMethod();
 
-    w3ba_lastCharTabIndex = -1;
     W3BA_SpeakText("Character.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 }
@@ -29,9 +25,6 @@ function OnTabChanged(tabIndex : int)
     var tabName : string;
 
     wrappedMethod(tabIndex);
-
-    if (tabIndex == w3ba_lastCharTabIndex) { return; }
-    w3ba_lastCharTabIndex = tabIndex;
 
     switch (tabIndex)
     {

@@ -20,19 +20,50 @@
 // TODO: Define custom input.settings entries for these actions
 // TODO: Add configuration UI for remapping hotkeys
 
-// Cooldown tracking to prevent rapid-fire hotkey triggers
-// Using CR4Player instead of CR4Game to avoid const assignment issues.
+// Cooldown tracking using timestamp approach - no mutable field needed.
+// Store last action time and compare with current time.
 @addField(CR4Player)
-var w3ba_inputCooldown : Float;
+var w3ba_lastInputTime : array<Float>;
+
+function W3BA_GetInputCooldownRemaining() : Float
+{
+    var lastTime : Float;
+    var currentTime : Float;
+
+    if (!thePlayer) { return 1.0; }
+    if (thePlayer.w3ba_lastInputTime.Size() == 0) { return 0.0; }
+
+    lastTime = thePlayer.w3ba_lastInputTime[0];
+    currentTime = theGame.GetEngineTimeAsSeconds();
+
+    return lastTime - currentTime;
+}
+
+function W3BA_SetInputCooldown(duration : Float)
+{
+    var targetTime : Float;
+
+    if (!thePlayer) { return; }
+
+    targetTime = theGame.GetEngineTimeAsSeconds() + duration;
+
+    if (thePlayer.w3ba_lastInputTime.Size() == 0)
+    {
+        thePlayer.w3ba_lastInputTime.PushBack(targetTime);
+    }
+    else
+    {
+        thePlayer.w3ba_lastInputTime[0] = targetTime;
+    }
+}
 
 function W3BA_CheckInputActions(core : W3BA_CoreManager)
 {
     if (!thePlayer) { return; }
 
-    // Decrement cooldown
-    if (thePlayer.w3ba_inputCooldown > 0)
+    // Check cooldown using timestamp
+    if (W3BA_GetInputCooldownRemaining() > 0)
     {
-        thePlayer.w3ba_inputCooldown -= 0.1;
         return;
     }
 
@@ -47,49 +78,49 @@ function W3BA_CheckInputActions(core : W3BA_CoreManager)
     if (theInput.IsActionJustPressed('W3BA_ToggleBeacon'))
     {
         core.GetBeacon().ToggleBeacon();
-        thePlayer.w3ba_inputCooldown = 0.3;
+        W3BA_SetInputCooldown(0.3);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceObj'))
     {
         core.GetBeacon().AnnounceObjective();
-        thePlayer.w3ba_inputCooldown = 0.3;
+        W3BA_SetInputCooldown(0.3);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_ToggleTracker'))
     {
         core.GetObjectTracker().ToggleTracker();
-        thePlayer.w3ba_inputCooldown = 0.3;
+        W3BA_SetInputCooldown(0.3);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_NextObject'))
     {
         core.GetObjectTracker().NextObject();
-        thePlayer.w3ba_inputCooldown = 0.2;
+        W3BA_SetInputCooldown(0.2);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_PrevObject'))
     {
         core.GetObjectTracker().PreviousObject();
-        thePlayer.w3ba_inputCooldown = 0.2;
+        W3BA_SetInputCooldown(0.2);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceHealth'))
     {
         W3BA_AnnounceHealthStatus(core);
-        thePlayer.w3ba_inputCooldown = 0.3;
+        W3BA_SetInputCooldown(0.3);
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceStatus'))
     {
         W3BA_AnnounceFullStatus(core);
-        thePlayer.w3ba_inputCooldown = 0.5;
+        W3BA_SetInputCooldown(0.5);
         return;
     }
 }

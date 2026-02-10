@@ -58,8 +58,10 @@ class W3BA_InventoryNarrator
 
         text = itemName;
 
-        // IsItemEquipped is on CR4Player, not CInventoryComponent
-        isEquipped = thePlayer.IsItemEquipped(itemId);
+        // Use IsItemMounted or IsItemHeld from CInventoryComponent
+        // IsItemMounted returns true if item is equipped to bone (but not if held in hand)
+        // IsItemHeld returns true if item is actively held
+        isEquipped = inv.IsItemMounted(itemId) || inv.IsItemHeld(itemId);
         if (isEquipped) { text += ". Equipped"; }
 
         quality = inv.GetItemQuality(itemId);
@@ -185,8 +187,8 @@ class W3BA_InventoryNarrator
 
         for (i = 0; i < items.Size(); i += 1)
         {
-            // IsItemEquipped is on CR4Player, not CInventoryComponent
-            if (thePlayer.IsItemEquipped(items[i]))
+            // Use IsItemMounted or IsItemHeld from CInventoryComponent
+            if (inv.IsItemMounted(items[i]) || inv.IsItemHeld(items[i]))
             {
                 equippedCount += 1;
             }

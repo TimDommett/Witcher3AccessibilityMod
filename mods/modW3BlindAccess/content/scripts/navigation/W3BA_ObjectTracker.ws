@@ -26,6 +26,22 @@ struct W3BA_InteractableInfo
     var distance    : Float;
 }
 
+// Helper function to convert enum to int (WitcherScript doesn't support C-style casts)
+function W3BA_CategoryToInt(cat : W3BA_ObjectCategory) : Int32
+{
+    switch (cat)
+    {
+        case W3BA_OBJ_CONTAINER: return 0;
+        case W3BA_OBJ_HERB:      return 1;
+        case W3BA_OBJ_NPC:       return 2;
+        case W3BA_OBJ_DOOR:      return 3;
+        case W3BA_OBJ_LOOT:      return 4;
+        case W3BA_OBJ_CLUE:      return 5;
+        case W3BA_OBJ_CRAFTING:  return 6;
+        default:                 return 7;
+    }
+}
+
 // ---------------------------------------------------------------
 // Object tracker
 // ---------------------------------------------------------------
@@ -161,7 +177,8 @@ class W3BA_ObjectTracker
         radius    = config.GetDetectionRadius();
 
         // Query all gameplay entities within detection radius
-        FindGameplayEntitiesInRange(entities, playerPos, radius, 50);
+        // Second param is a CNode (center), not Vector
+        FindGameplayEntitiesInRange(entities, thePlayer, radius, 50);
 
         for (i = 0; i < entities.Size(); i += 1)
         {
@@ -174,7 +191,7 @@ class W3BA_ObjectTracker
             entityCat = ClassifyEntity(entities[i]);
 
             // Apply category filter if active
-            if (activeFilter >= 0 && (Int32)entityCat != activeFilter) { continue; }
+            if (activeFilter >= 0 && W3BA_CategoryToInt(entityCat) != activeFilter) { continue; }
 
             // Skip unknown objects unless no filter is active
             if (entityCat == W3BA_OBJ_UNKNOWN && activeFilter < 0) { continue; }

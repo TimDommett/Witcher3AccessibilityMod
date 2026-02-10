@@ -126,16 +126,14 @@ class W3BA_CombatMonitor
         var entities : array<CGameplayEntity>;
         var i : Int32;
         var actor : CActor;
-        var playerPos : Vector;
 
         trackedEnemies.Clear();
 
         if (!thePlayer) { return; }
 
-        playerPos = thePlayer.GetWorldPosition();
-
         // Find all gameplay entities within 30m of player
-        FindGameplayEntitiesInRange(entities, playerPos, 30.0, 20);
+        // Second param is a CNode (center), not Vector
+        FindGameplayEntitiesInRange(entities, thePlayer, 30.0, 20);
 
         for (i = 0; i < entities.Size(); i += 1)
         {

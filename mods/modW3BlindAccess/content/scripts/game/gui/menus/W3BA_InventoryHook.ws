@@ -2,9 +2,6 @@
 // Wraps CR4InventoryMenu to narrate tab changes and menu open/close.
 // CR4InventoryMenu has OnTabChanged but not OnInputHandled.
 
-@addField(CR4InventoryMenu)
-var w3ba_lastInvTabIndex : int;
-
 // ---------------------------------------------------------------
 // Menu open
 // ---------------------------------------------------------------
@@ -14,7 +11,6 @@ function OnConfigUI()
 {
     wrappedMethod();
 
-    w3ba_lastInvTabIndex = -1;
     W3BA_SpeakText("Inventory.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 }
@@ -29,9 +25,6 @@ function OnTabChanged(tabIndex : int)
     var tabName : string;
 
     wrappedMethod(tabIndex);
-
-    if (tabIndex == w3ba_lastInvTabIndex) { return; }
-    w3ba_lastInvTabIndex = tabIndex;
 
     switch (tabIndex)
     {
