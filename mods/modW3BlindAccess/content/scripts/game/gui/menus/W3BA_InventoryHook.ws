@@ -1,6 +1,5 @@
 // W3BlindAccess - Inventory Menu Hook
-// Wraps CR4InventoryMenu to narrate tab changes and menu open/close.
-// CR4InventoryMenu has OnTabChanged but not OnInputHandled.
+// Wraps CR4InventoryMenu to narrate tabs and item details.
 
 // ---------------------------------------------------------------
 // Menu open
@@ -11,7 +10,7 @@ function OnConfigUI()
 {
     wrappedMethod();
 
-    W3BA_SpeakText("Inventory.", true, 2);
+    W3BA_SpeakText("Inventory. Use left and right for tabs, up and down for items.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 }
 
@@ -40,6 +39,43 @@ function OnTabChanged(tabIndex : int)
 
     W3BA_SpeakText(tabName + ".", true, 2);
     W3BA_PlayCue("ui_menu_select");
+}
+
+// ---------------------------------------------------------------
+// Item focus - OnGetItemData is called when item tooltip is needed
+// ---------------------------------------------------------------
+
+@wrapMethod(CR4InventoryMenu)
+function OnGetItemData(item : SItemUniqueId, compareItemType : int)
+{
+    var inv : CInventoryComponent;
+    var itemName : String;
+    var isEquipped : Bool;
+    var quality : Int32;
+    var text : String;
+
+    wrappedMethod(item, compareItemType);
+
+    // Get item details for narration
+    inv = thePlayer.GetInventory();
+    if (inv)
+    {
+        itemName = inv.GetItemLocalizedNameByUniqueID(item);
+        if (itemName != "")
+        {
+            text = itemName;
+
+            // Check if equipped
+            isEquipped = inv.IsItemMounted(item) || inv.IsItemHeld(item);
+            if (isEquipped) { text += ", Equipped"; }
+
+            // Get quality
+            quality = inv.GetItemQuality(item);
+            if (quality > 1) { text += ", " + W3BA_QualityToString(quality); }
+
+            W3BA_SpeakText(text, true, 1);
+        }
+    }
 }
 
 // ---------------------------------------------------------------
