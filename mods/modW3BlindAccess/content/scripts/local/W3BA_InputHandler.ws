@@ -47,14 +47,9 @@ function W3BA_SetInputCooldown(duration : Float)
 
     targetTime = theGame.GetEngineTimeAsSeconds() + duration;
 
-    if (thePlayer.w3ba_lastInputTime.Size() == 0)
-    {
-        thePlayer.w3ba_lastInputTime.PushBack(targetTime);
-    }
-    else
-    {
-        thePlayer.w3ba_lastInputTime[0] = targetTime;
-    }
+    // Clear and re-add to avoid const array element assignment
+    thePlayer.w3ba_lastInputTime.Clear();
+    thePlayer.w3ba_lastInputTime.PushBack(targetTime);
 }
 
 function W3BA_CheckInputActions(core : W3BA_CoreManager)
