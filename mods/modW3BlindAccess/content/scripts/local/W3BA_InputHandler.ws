@@ -21,15 +21,18 @@
 // TODO: Add configuration UI for remapping hotkeys
 
 // Cooldown tracking to prevent rapid-fire hotkey triggers
-@addField(CR4Game)
+// Using CR4Player instead of CR4Game to avoid const assignment issues.
+@addField(CR4Player)
 var w3ba_inputCooldown : Float;
 
 function W3BA_CheckInputActions(core : W3BA_CoreManager)
 {
+    if (!thePlayer) { return; }
+
     // Decrement cooldown
-    if (theGame.w3ba_inputCooldown > 0)
+    if (thePlayer.w3ba_inputCooldown > 0)
     {
-        theGame.w3ba_inputCooldown -= 0.1;
+        thePlayer.w3ba_inputCooldown -= 0.1;
         return;
     }
 
@@ -44,49 +47,49 @@ function W3BA_CheckInputActions(core : W3BA_CoreManager)
     if (theInput.IsActionJustPressed('W3BA_ToggleBeacon'))
     {
         core.GetBeacon().ToggleBeacon();
-        theGame.w3ba_inputCooldown = 0.3;
+        thePlayer.w3ba_inputCooldown = 0.3;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceObj'))
     {
         core.GetBeacon().AnnounceObjective();
-        theGame.w3ba_inputCooldown = 0.3;
+        thePlayer.w3ba_inputCooldown = 0.3;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_ToggleTracker'))
     {
         core.GetObjectTracker().ToggleTracker();
-        theGame.w3ba_inputCooldown = 0.3;
+        thePlayer.w3ba_inputCooldown = 0.3;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_NextObject'))
     {
         core.GetObjectTracker().NextObject();
-        theGame.w3ba_inputCooldown = 0.2;
+        thePlayer.w3ba_inputCooldown = 0.2;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_PrevObject'))
     {
         core.GetObjectTracker().PreviousObject();
-        theGame.w3ba_inputCooldown = 0.2;
+        thePlayer.w3ba_inputCooldown = 0.2;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceHealth'))
     {
         W3BA_AnnounceHealthStatus(core);
-        theGame.w3ba_inputCooldown = 0.3;
+        thePlayer.w3ba_inputCooldown = 0.3;
         return;
     }
 
     if (theInput.IsActionJustPressed('W3BA_AnnounceStatus'))
     {
         W3BA_AnnounceFullStatus(core);
-        theGame.w3ba_inputCooldown = 0.5;
+        thePlayer.w3ba_inputCooldown = 0.5;
         return;
     }
 }

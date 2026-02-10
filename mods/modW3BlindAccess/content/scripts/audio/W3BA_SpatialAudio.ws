@@ -19,6 +19,7 @@ class W3BA_SpatialAudio
     // ---------------------------------------------------------------
 
     // Returns the cardinal direction string from player to a target position
+    // Uses VecHeading which returns heading angle in degrees from a 2D vector
     public function GetCardinalDirection(targetPosition : Vector) : String
     {
         var playerPos     : Vector;
@@ -31,14 +32,15 @@ class W3BA_SpatialAudio
         playerRot     = thePlayer.GetWorldRotation();
         toTarget      = targetPosition - playerPos;
 
-        // Get angle in world space
-        angle = Atan2(toTarget.Y, toTarget.X);
+        // VecHeading returns heading angle in degrees
+        angle = VecHeading(toTarget);
         // Convert to degrees relative to player facing
         relativeAngle = angle - playerRot.Yaw;
 
-        // Normalize to 0-360
-        while (relativeAngle < 0)    { relativeAngle += 360.0; }
-        while (relativeAngle >= 360) { relativeAngle -= 360.0; }
+        // Normalize to -180 to 180 first, then to 0-360
+        while (relativeAngle < -180.0) { relativeAngle += 360.0; }
+        while (relativeAngle > 180.0)  { relativeAngle -= 360.0; }
+        if (relativeAngle < 0) { relativeAngle += 360.0; }
 
         // Map to cardinal
         if      (relativeAngle < 22.5 || relativeAngle >= 337.5)  { return "ahead"; }
@@ -52,6 +54,7 @@ class W3BA_SpatialAudio
     }
 
     // Returns compass cardinal direction (north/south/east/west)
+    // Uses VecHeading for world-space angle calculation
     public function GetCompassDirection(targetPosition : Vector) : String
     {
         var playerPos : Vector;
@@ -61,7 +64,8 @@ class W3BA_SpatialAudio
         playerPos = thePlayer.GetWorldPosition();
         toTarget  = targetPosition - playerPos;
 
-        angle = Atan2(toTarget.Y, toTarget.X);
+        // VecHeading returns heading angle in degrees
+        angle = VecHeading(toTarget);
         // Normalize to 0-360
         while (angle < 0)    { angle += 360.0; }
         while (angle >= 360) { angle -= 360.0; }

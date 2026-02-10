@@ -1,11 +1,13 @@
 // W3BlindAccess - Options/Settings Menu Hook
-// Options are handled within CR4IngameMenu, not a separate class.
-// We hook OnOptionValueChanged to narrate setting changes.
+//
+// NOTE: Options menus in Witcher 3 are handled by Flash/Scaleform UI.
+// The OnOptionValueChanged method may not exist in vanilla WitcherScript.
+// Options panel narration is provided at the tab level by W3BA_IngameMenuHook.ws.
+//
+// TODO: Investigate how to hook individual option changes.
+// Possible approaches:
+// 1. Poll CInGameConfigWrapper for value changes
+// 2. Hook specific Flash callback events
+// 3. Add a timer-based option monitoring system
 
-@wrapMethod(CR4IngameMenu)
-function OnOptionValueChanged(optionName : string, optionValue : string)
-{
-    wrappedMethod(optionName, optionValue);
-
-    W3BA_SpeakText(optionName + " set to " + optionValue, true, 2);
-}
+// Placeholder - no hooks defined until API is verified.

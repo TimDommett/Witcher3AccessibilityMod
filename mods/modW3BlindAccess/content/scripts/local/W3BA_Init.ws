@@ -54,22 +54,26 @@ function W3BA_PRIORITY_URGENT() : int { return 3; }
 // Core Manager Singleton
 // ---------------------------------------------------------------
 
-// Store the core manager on the game singleton via @addField.
+// Store the core manager on the player via @addField.
+// Using CR4Player instead of CR4Game to avoid const assignment issues.
 // WitcherScript does not support file-level var declarations.
-@addField(CR4Game)
+@addField(CR4Player)
 var w3ba_coreManager : W3BA_CoreManager;
 
 function W3BA_GetCoreManager() : W3BA_CoreManager
 {
-    return theGame.w3ba_coreManager;
+    if (!thePlayer) { return NULL; }
+    return thePlayer.w3ba_coreManager;
 }
 
 function W3BA_EnsureInitialized()
 {
-    if (!theGame.w3ba_coreManager)
+    if (!thePlayer) { return; }
+
+    if (!thePlayer.w3ba_coreManager)
     {
-        theGame.w3ba_coreManager = new W3BA_CoreManager in theGame;
-        theGame.w3ba_coreManager.Initialize();
+        thePlayer.w3ba_coreManager = new W3BA_CoreManager in thePlayer;
+        thePlayer.w3ba_coreManager.Initialize();
     }
 }
 

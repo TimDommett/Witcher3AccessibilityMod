@@ -216,6 +216,7 @@ class W3BA_NavigationBeacon
     // ---------------------------------------------------------------
 
     // Returns player-relative direction (ahead, behind, left, right)
+    // Uses VecHeading to get heading angle in degrees from a 2D vector
     private function GetRelativeDirection(target : Vector) : String
     {
         var playerPos     : Vector;
@@ -228,12 +229,14 @@ class W3BA_NavigationBeacon
         playerRot = thePlayer.GetWorldRotation();
         toTarget  = target - playerPos;
 
-        angle = Atan2(toTarget.Y, toTarget.X);
+        // VecHeading returns heading angle in degrees
+        angle = VecHeading(toTarget);
         relativeAngle = angle - playerRot.Yaw;
 
-        // Normalize to 0-360
-        while (relativeAngle < 0)    { relativeAngle += 360.0; }
-        while (relativeAngle >= 360) { relativeAngle -= 360.0; }
+        // Normalize to -180 to 180, then to 0-360
+        while (relativeAngle < -180.0) { relativeAngle += 360.0; }
+        while (relativeAngle > 180.0)  { relativeAngle -= 360.0; }
+        if (relativeAngle < 0) { relativeAngle += 360.0; }
 
         if      (relativeAngle < 22.5 || relativeAngle >= 337.5)  { return "ahead"; }
         else if (relativeAngle < 67.5)                             { return "ahead right"; }
@@ -246,6 +249,7 @@ class W3BA_NavigationBeacon
     }
 
     // Returns compass direction (north/south/east/west)
+    // Uses VecHeading for world-space angle calculation
     private function GetCompassDirection(target : Vector) : String
     {
         var playerPos : Vector;
@@ -254,7 +258,8 @@ class W3BA_NavigationBeacon
 
         playerPos = thePlayer.GetWorldPosition();
         toTarget  = target - playerPos;
-        angle     = Atan2(toTarget.Y, toTarget.X);
+        // VecHeading returns heading angle in degrees
+        angle = VecHeading(toTarget);
 
         while (angle < 0)    { angle += 360.0; }
         while (angle >= 360) { angle -= 360.0; }

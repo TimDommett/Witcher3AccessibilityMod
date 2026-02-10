@@ -58,7 +58,8 @@ class W3BA_InventoryNarrator
 
         text = itemName;
 
-        isEquipped = inv.IsItemEquipped(itemId);
+        // IsItemEquipped is on CR4Player, not CInventoryComponent
+        isEquipped = thePlayer.IsItemEquipped(itemId);
         if (isEquipped) { text += ". Equipped"; }
 
         quality = inv.GetItemQuality(itemId);
@@ -184,7 +185,8 @@ class W3BA_InventoryNarrator
 
         for (i = 0; i < items.Size(); i += 1)
         {
-            if (inv.IsItemEquipped(items[i]))
+            // IsItemEquipped is on CR4Player, not CInventoryComponent
+            if (thePlayer.IsItemEquipped(items[i]))
             {
                 equippedCount += 1;
             }

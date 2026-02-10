@@ -71,11 +71,12 @@ function W3BA_GetCurrentAreaName() : String
 
     switch (area)
     {
-        case AN_WhiteOrchard:   return "White Orchard";
-        case AN_NMLandNovigrad: return "Velen and Novigrad";
-        case AN_Skellige:       return "Skellige";
-        case AN_KaerMorhen:     return "Kaer Morhen";
-        case AN_Prologue:       return "Kaer Morhen (Prologue)";
-        default:                return "Unknown area";
+        case AN_Prologue_Village:    return "White Orchard";
+        case AN_NMLandNovigrad:      return "Velen and Novigrad";
+        case AN_Velen:               return "Velen";
+        case AN_Skellige_ArdSkellig: return "Skellige";
+        case AN_Kaer_Morhen:         return "Kaer Morhen";
+        case AN_Wyzima:              return "Vizima";
+        default:                     return "Unknown area";
     }
 }

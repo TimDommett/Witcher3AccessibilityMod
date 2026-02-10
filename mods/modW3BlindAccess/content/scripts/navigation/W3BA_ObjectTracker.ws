@@ -20,10 +20,10 @@ enum W3BA_ObjectCategory
 
 struct W3BA_InteractableInfo
 {
-    var objectName : String;
-    var category   : W3BA_ObjectCategory;
-    var position   : Vector;
-    var distance   : Float;
+    var objectName  : String;
+    var objCategory : W3BA_ObjectCategory;
+    var position    : Vector;
+    var distance    : Float;
 }
 
 // ---------------------------------------------------------------
@@ -149,7 +149,7 @@ class W3BA_ObjectTracker
         var radius : Float;
         var i : Int32;
         var info : W3BA_InteractableInfo;
-        var category : W3BA_ObjectCategory;
+        var entityCat : W3BA_ObjectCategory;
         var dist : Float;
         var entityName : String;
 
@@ -171,23 +171,23 @@ class W3BA_ObjectTracker
             if (entities[i] == thePlayer) { continue; }
 
             // Classify the entity
-            category = ClassifyEntity(entities[i]);
+            entityCat = ClassifyEntity(entities[i]);
 
             // Apply category filter if active
-            if (activeFilter >= 0 && (Int32)category != activeFilter) { continue; }
+            if (activeFilter >= 0 && (Int32)entityCat != activeFilter) { continue; }
 
             // Skip unknown objects unless no filter is active
-            if (category == W3BA_OBJ_UNKNOWN && activeFilter < 0) { continue; }
+            if (entityCat == W3BA_OBJ_UNKNOWN && activeFilter < 0) { continue; }
 
             dist = VecDistance(playerPos, entities[i].GetWorldPosition());
             entityName = GetEntityDisplayName(entities[i]);
 
             if (entityName == "") { continue; }
 
-            info.objectName = entityName;
-            info.category   = category;
-            info.position   = entities[i].GetWorldPosition();
-            info.distance   = dist;
+            info.objectName  = entityName;
+            info.objCategory = entityCat;
+            info.position    = entities[i].GetWorldPosition();
+            info.distance    = dist;
 
             nearbyObjects.PushBack(info);
         }
@@ -325,7 +325,7 @@ class W3BA_ObjectTracker
         ttsBridge.Speak(text, true, 1);
 
         // Play spatial cue at object position
-        cueId = GetCueForCategory(obj.category);
+        cueId = GetCueForCategory(obj.objCategory);
         audioManager.PlayCue3D(cueId, obj.position, 1.0);
     }
 
@@ -336,6 +336,7 @@ class W3BA_ObjectTracker
 
     // ---------------------------------------------------------------
     // Direction helper (player-relative)
+    // Uses VecHeading to get angle from vector (WitcherScript built-in)
     // ---------------------------------------------------------------
 
     private function GetRelativeDirection(target : Vector) : String
@@ -350,11 +351,15 @@ class W3BA_ObjectTracker
         playerRot = thePlayer.GetWorldRotation();
         toTarget  = target - playerPos;
 
-        angle = Atan2(toTarget.Y, toTarget.X);
+        // VecHeading returns the heading angle in degrees from a 2D vector
+        angle = VecHeading(toTarget);
         relativeAngle = angle - playerRot.Yaw;
 
-        while (relativeAngle < 0)    { relativeAngle += 360.0; }
-        while (relativeAngle >= 360) { relativeAngle -= 360.0; }
+        while (relativeAngle < -180.0) { relativeAngle += 360.0; }
+        while (relativeAngle > 180.0)  { relativeAngle -= 360.0; }
+
+        // Convert to 0-360 range for easier comparison
+        if (relativeAngle < 0) { relativeAngle += 360.0; }
 
         if      (relativeAngle < 22.5 || relativeAngle >= 337.5)  { return "ahead"; }
         else if (relativeAngle < 67.5)                             { return "ahead right"; }
