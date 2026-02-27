@@ -21,6 +21,11 @@ class W3BA_CombatMonitor
     private var enemyRefreshTimer    : Float;
     private var enemyRefreshInterval : Float;
 
+    // Attack detection
+    private var attackCheckTimer     : Float;
+    private var attackCheckInterval  : Float;
+    private var lastAttackWarningTime : Float;
+
     // ---------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------
@@ -35,6 +40,9 @@ class W3BA_CombatMonitor
         criticalHealthThreshold = 10.0;
         enemyRefreshTimer       = 0.0;
         enemyRefreshInterval    = 1.0;
+        attackCheckTimer        = 0.0;
+        attackCheckInterval     = 0.15;  // Check attacks frequently (150ms)
+        lastAttackWarningTime   = 0.0;
     }
 
     // Set combat cues reference for direct event routing
@@ -61,6 +69,14 @@ class W3BA_CombatMonitor
                 enemyRefreshTimer = 0.0;
             }
             CheckTargetState();
+
+            // Check for enemy attacks
+            attackCheckTimer += deltaTime;
+            if (attackCheckTimer >= attackCheckInterval)
+            {
+                CheckEnemyAttacks();
+                attackCheckTimer = 0.0;
+            }
         }
     }
 
@@ -163,6 +179,69 @@ class W3BA_CombatMonitor
         if (actor == thePlayer) { return false; }
 
         return actor.GetAttitude(thePlayer) == AIA_Hostile;
+    }
+
+    // ---------------------------------------------------------------
+    // Attack detection - warn player of incoming attacks
+    // ---------------------------------------------------------------
+
+    private function CheckEnemyAttacks()
+    {
+        var i : Int32;
+        var enemy : CActor;
+        var npc : CNewNPC;
+        var enemyPos : Vector;
+        var playerPos : Vector;
+        var distance : Float;
+        var currentTime : Float;
+        var isAttacking : Bool;
+
+        if (!thePlayer) { return; }
+        if (!combatCues) { return; }
+
+        currentTime = theGame.GetEngineTimeAsSeconds();
+        playerPos = thePlayer.GetWorldPosition();
+
+        // Throttle warnings to avoid spam (minimum 0.8s between warnings)
+        if (currentTime - lastAttackWarningTime < 0.8) { return; }
+
+        for (i = 0; i < trackedEnemies.Size(); i += 1)
+        {
+            enemy = trackedEnemies[i];
+            if (!enemy || !enemy.IsAlive()) { continue; }
+
+            // Check distance - only warn for close enemies
+            enemyPos = enemy.GetWorldPosition();
+            distance = VecDistance(playerPos, enemyPos);
+            if (distance > 8.0) { continue; }
+
+            // Try to detect if enemy is attacking
+            // Method 1: Check if enemy is performing attack action
+            npc = (CNewNPC)enemy;
+            if (npc)
+            {
+                isAttacking = npc.IsInCombatAction();
+                if (isAttacking)
+                {
+                    // Check if it's specifically an attack action
+                    if (npc.GetBehaviorVariable('isAttacking') > 0.5)
+                    {
+                        combatCues.OnEnemyAttacking(enemy.GetDisplayName(), enemyPos);
+                        lastAttackWarningTime = currentTime;
+                        return; // One warning at a time
+                    }
+                }
+            }
+
+            // Method 2: Check CActor combat action type
+            if (enemy.IsInCombatAction())
+            {
+                // Generic attack warning based on combat action state
+                combatCues.OnEnemyAttacking(enemy.GetDisplayName(), enemyPos);
+                lastAttackWarningTime = currentTime;
+                return;
+            }
+        }
     }
 
     // ---------------------------------------------------------------

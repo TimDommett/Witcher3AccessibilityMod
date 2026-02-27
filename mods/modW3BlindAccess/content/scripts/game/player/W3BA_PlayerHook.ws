@@ -72,17 +72,13 @@ function ReactToBeingHit(damageAction : W3DamageAction, optional buffNotApplied 
 // Combat: player performs dodge
 // ---------------------------------------------------------------
 
-// NOTE: The exact method name may need verification against game scripts.
-// Common dodge methods: PerformDodge, PlayerDodge, EvadePressed
-// If this hook fails to compile, comment it out and rely on combat monitor polling.
-
-/*
+// Hook into the dodge state enter to detect successful dodges
 @wrapMethod(CR4Player)
-function PerformDodge(dodgeType : EPlayerDodgeType)
+function OnPerformEvade(evadeType : EEvadeType)
 {
     var core : W3BA_CoreManager;
 
-    wrappedMethod(dodgeType);
+    wrappedMethod(evadeType);
 
     core = W3BA_GetCoreManager();
     if (core && core.GetCombatCues())
@@ -90,7 +86,24 @@ function PerformDodge(dodgeType : EPlayerDodgeType)
         core.GetCombatCues().OnPlayerDodged();
     }
 }
-*/
+
+// ---------------------------------------------------------------
+// Combat: player performs parry
+// ---------------------------------------------------------------
+
+@wrapMethod(CR4Player)
+function OnParryActivated()
+{
+    var core : W3BA_CoreManager;
+
+    wrappedMethod();
+
+    core = W3BA_GetCoreManager();
+    if (core && core.GetCombatCues())
+    {
+        core.GetCombatCues().OnPlayerParried();
+    }
+}
 
 // ---------------------------------------------------------------
 // Target lock change detection

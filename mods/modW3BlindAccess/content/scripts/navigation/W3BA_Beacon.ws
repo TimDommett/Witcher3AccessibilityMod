@@ -175,38 +175,60 @@ class W3BA_NavigationBeacon
 
     private function TryGetQuestObjectivePosition(mapManager : CCommonMapManager) : Vector
     {
-        // The Witcher 3 journal system tracks the active quest objective.
-        // CCommonMapManager creates map pins for tracked objectives.
-        //
-        // Known API methods on CCommonMapManager:
-        //   GetEntityMapPins(out pins : array<SEntityMapPinInfo>)
-        //   GetUserMapPinByIndex(index : Int32) : SUserMapPinInstanceData
-        //   GetHighlightedMapPin() - might return current quest pin
-        //
-        // The exact method varies by game version. We try the most likely ones.
-        // If none compile, the waypoint will be zero and beacon silently does nothing.
+        var jm : CWitcherJournalManager;
+        var trackedQuest : CJournalQuest;
+        var objectives : array<CJournalQuestObjective>;
+        var pinInstances : array<SCommonMapPinInstance>;
+        var area : EAreaName;
+        var worldPath : String;
+        var i, j : Int32;
+        var objStatus : EJournalStatus;
 
-        // TODO: Verify against actual game script dump which method provides
-        // the tracked quest objective world position. Candidates:
-        //
-        // Option A: mapManager.GetCurrentTrackedQuestPosition()
-        // Option B: Iterate GetEntityMapPins() and filter for quest type
-        // Option C: Use theGame.GetJournalManager().GetTrackedQuest() +
-        //           quest objective map pin lookup
-        //
-        // For now, return zero - beacon won't ping without a valid position.
-        // This is the HIGHEST PRIORITY item to verify during in-game testing.
+        jm = theGame.GetJournalManager();
+        if (!jm) { return Vector(0, 0, 0); }
+
+        trackedQuest = jm.GetTrackedQuest();
+        if (!trackedQuest) { return Vector(0, 0, 0); }
+
+        // Get current area for map pin query
+        area = theGame.GetCommonMapManager().GetCurrentJournalArea();
+        worldPath = theGame.GetWorld().GetDepotPath();
+
+        // Get all map pins in current area
+        pinInstances = mapManager.GetMapPinInstances(worldPath);
+
+        // Iterate through pins to find quest objective pins
+        for (i = 0; i < pinInstances.Size(); i += 1)
+        {
+            // Check if this is a quest-related pin type
+            if (mapManager.IsQuestPinType(pinInstances[i].type))
+            {
+                // Return the first quest pin position found
+                // This is typically the tracked objective
+                if (pinInstances[i].position.X != 0 || pinInstances[i].position.Y != 0)
+                {
+                    return pinInstances[i].position;
+                }
+            }
+        }
 
         return Vector(0, 0, 0);
     }
 
     private function TryGetUserWaypointPosition(mapManager : CCommonMapManager) : Vector
     {
-        // Users can place custom waypoints on the map. If the player manually
-        // placed a waypoint, use that as a navigation target.
-        //
-        // TODO: Check if mapManager.GetUserMapPinByIndex(0) returns a
-        // valid user-placed waypoint with world coordinates.
+        var userPin : SUserMapPinInstanceData;
+        var hasUserPin : Bool;
+
+        // Check if user has placed a custom waypoint on the map
+        hasUserPin = mapManager.GetUserMapPinByIndex(0, userPin);
+        if (hasUserPin)
+        {
+            if (userPin.position.X != 0 || userPin.position.Y != 0)
+            {
+                return userPin.position;
+            }
+        }
 
         return Vector(0, 0, 0);
     }

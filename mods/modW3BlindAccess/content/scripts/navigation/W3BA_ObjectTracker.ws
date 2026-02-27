@@ -217,6 +217,12 @@ class W3BA_ObjectTracker
     {
         var actor : CActor;
         var npc : CNewNPC;
+        var container : W3Container;
+        var herb : W3Herb;
+        var door : W3Door;
+        var lootContainer : W3LootContainer;
+        var focusClue : W3FocusAreaTrigger;
+        var itemEntity : W3ItemEntity;
 
         // Check if it's an NPC
         npc = (CNewNPC)entity;
@@ -231,46 +237,78 @@ class W3BA_ObjectTracker
             return W3BA_OBJ_NPC;
         }
 
-        // Check for containers (chests, barrels, etc.)
+        // Check for containers using class cast (most reliable)
+        container = (W3Container)entity;
+        if (container)
+        {
+            return W3BA_OBJ_CONTAINER;
+        }
+
+        // Check for loot containers (dead bodies, etc.)
+        lootContainer = (W3LootContainer)entity;
+        if (lootContainer)
+        {
+            return W3BA_OBJ_LOOT;
+        }
+
+        // Check for herbs using class cast
+        herb = (W3Herb)entity;
+        if (herb)
+        {
+            return W3BA_OBJ_HERB;
+        }
+
+        // Check for doors using class cast
+        door = (W3Door)entity;
+        if (door)
+        {
+            return W3BA_OBJ_DOOR;
+        }
+
+        // Check for focus/witcher senses clues
+        focusClue = (W3FocusAreaTrigger)entity;
+        if (focusClue)
+        {
+            return W3BA_OBJ_CLUE;
+        }
+
+        // Check for item entities (dropped items)
+        itemEntity = (W3ItemEntity)entity;
+        if (itemEntity)
+        {
+            return W3BA_OBJ_LOOT;
+        }
+
+        // Fallback: check entity tags for things we might have missed
         if (entity.HasTag('container') || entity.HasTag('chest'))
         {
             return W3BA_OBJ_CONTAINER;
         }
 
-        // Check for herbs / gatherable items
-        if (entity.HasTag('herb') || entity.HasTag('plant'))
+        if (entity.HasTag('herb') || entity.HasTag('plant') || entity.HasTag('alchemy_ingredient'))
         {
             return W3BA_OBJ_HERB;
         }
 
-        // Check for doors
         if (entity.HasTag('door') || entity.HasTag('gate'))
         {
             return W3BA_OBJ_DOOR;
         }
 
-        // Check for loot (dropped items)
-        if (entity.HasTag('loot') || entity.HasTag('item'))
+        if (entity.HasTag('loot') || entity.HasTag('item') || entity.HasTag('pickup'))
         {
             return W3BA_OBJ_LOOT;
         }
 
-        // Check for Witcher senses clues
-        if (entity.HasTag('clue') || entity.HasTag('investigation'))
+        if (entity.HasTag('clue') || entity.HasTag('investigation') || entity.HasTag('focus_clue'))
         {
             return W3BA_OBJ_CLUE;
         }
 
-        // Check for crafting stations
-        if (entity.HasTag('crafting') || entity.HasTag('blacksmith') || entity.HasTag('armorer'))
+        if (entity.HasTag('crafting') || entity.HasTag('blacksmith') || entity.HasTag('armorer') || entity.HasTag('herbalist'))
         {
             return W3BA_OBJ_CRAFTING;
         }
-
-        // Fallback: check if entity has any interactable component
-        // If it does, classify as unknown (still trackable with filter)
-        // TODO: Check for W3Container, W3Herb class types directly
-        //       e.g. (W3Container)entity, (W3Herb)entity for more accurate classification
 
         return W3BA_OBJ_UNKNOWN;
     }

@@ -125,6 +125,17 @@ class W3BA_CombatCues
         }
     }
 
+    public function OnEnemyAttacking(enemyName : String, enemyPosition : Vector)
+    {
+        // Warn player about incoming attack with spatial audio
+        audioManager.PlayCue3D("enemy_attack_light", enemyPosition, 1.0);
+        if (CanSpeakCombat())
+        {
+            ttsBridge.Speak("Attack!", true, 3);
+            lastCombatSpeechTime = 0.0;
+        }
+    }
+
     public function OnPlayerHit(damage : Float)
     {
         audioManager.PlayCue("player_hit");

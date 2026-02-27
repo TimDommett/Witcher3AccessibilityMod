@@ -125,21 +125,23 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 
 ### Remaining TODOs in Phase 1 Files
 
-1. **Menu item text extraction** (all hook files)
-   - Hooks detect input/navigation but some use index-to-label mapping instead of reading the actual Flash text
-   - `GetCurrentMenuItemIndex()` is assumed available on menu classes — needs verification against actual game API
-   - Options menu `W3BA_GetOptionName()` / `W3BA_GetOptionValue()` return placeholders; need to wire `CInGameConfigWrapper.GetGroupEntries()`
+1. **Menu item navigation** — **IMPROVED**
+   - Main menu and pause menu now use `OnInputHandled` hooks
+   - Tracks menu index and announces items on up/down navigation
+   - Index-to-label mapping may need adjustment for different game versions/DLC
 
-2. **Save slot metadata** (`W3BA_SaveLoadHook.ws`)
-   - `W3BA_BuildSaveSlotDescription()` returns placeholder text
-   - Need to extract area name, date/time, play time from Flash data bindings
+2. **Save slot metadata** — **IMPLEMENTED**
+   - Uses `theGame.GetSaveInSlot()` to extract save info
+   - Narrates: area name, player level, playtime, difficulty
+   - Empty slots announced as "Empty"
 
 3. **Dialogue choice data** (`W3BA_DialogueHook.ws`)
    - `ShowDialogChoices()` and `OnDialogChoiceFocused()` signatures assumed — need to verify actual `CR4HudModuleDialog` API
    - `GetCurrentChoiceText()` returns placeholder
 
-4. **Confirmation dialog text** (`W3BA_SaveLoadHook.ws`)
-   - `CR4OverlayPopup` hook speaks generic "Confirmation dialog" — need to extract actual message
+4. **Options menu settings** (`W3BA_OptionsMenuHook.ws`)
+   - Options panel narration is tab-level only
+   - Individual setting names/values not yet extracted from `CInGameConfigWrapper`
 
 5. **Wwise soundbank** — no actual `.bnk` file exists yet; audio cues will be silent until created
 
@@ -147,22 +149,24 @@ All Wwise event IDs defined as constants in `W3BA_Init.ws`:
 
 ### Phase 2 Remaining TODOs
 
-1. **Quest waypoint position extraction** (HIGHEST PRIORITY)
-   - `W3BA_Beacon.TryGetQuestObjectivePosition()` returns zero — needs real API
-   - Candidates: `CCommonMapManager.GetEntityMapPins()`, journal manager quest tracking
-   - Without this, the navigation beacon can't guide the player
+1. **Quest waypoint position extraction** — **IMPLEMENTED**
+   - Uses `CCommonMapManager.GetMapPinInstances()` to query quest pins
+   - Falls back to user-placed waypoints via `GetUserMapPinByIndex()`
+   - Beacon now guides to tracked quest objectives
 
-2. **Dodge/parry hook verification**
-   - `CR4Player.PerformDodge()` hook is commented out — needs method signature verification
-   - Parry detection not yet hooked
+2. **Dodge/parry hooks** — **IMPLEMENTED**
+   - `OnPerformEvade()` hook announces successful dodges
+   - `OnParryActivated()` hook announces successful parries
 
-3. **Entity tag verification for object tracker**
-   - Entity tags like `'container'`, `'herb'`, `'door'` are assumed — need verification
-   - May need direct class casts (`W3Container`, `W3Herb`) instead of tag checks
+3. **Entity classification for object tracker** — **IMPLEMENTED**
+   - Direct class casts: `W3Container`, `W3Herb`, `W3Door`, `W3LootContainer`, `W3ItemEntity`, `W3FocusAreaTrigger`
+   - Fallback tag checks for edge cases
 
-4. **Attack wind-up detection**
-   - CombatMonitor doesn't detect enemy attack animations yet
-   - Need to check `CActor` for attack state methods (e.g., `IsAttacking()`, `GetCurrentActionType()`)
+4. **Attack wind-up detection** — **IMPLEMENTED**
+   - `CheckEnemyAttacks()` monitors enemies within 8m
+   - Uses `IsInCombatAction()` and behavior variables to detect attacks
+   - Announces "Attack!" with spatial audio cue
+   - Throttled to prevent spam (0.8s minimum between warnings)
 
 5. **Wwise soundbank** — still no `.bnk` file; audio cues are silent
 6. **ASI plugin not compiled** — C++ source is written but needs Windows build
@@ -236,9 +240,9 @@ All hooks use `@wrapMethod` / `@addField` pattern on game menu classes:
 - [x] Navigation beacon system (structure + direction)
 - [x] Object tracker with entity scanning + classification
 - [x] Distance/direction announcements (relative + compass)
-- [ ] Quest waypoint position extraction (API verification needed)
-- [ ] Attack wind-up warning system (needs animation state access)
-- [ ] Dodge/parry detection hooks (method signatures unverified)
+- [x] Quest waypoint position extraction (via CCommonMapManager.GetMapPinInstances)
+- [x] Attack wind-up warning system (via IsInCombatAction + behavior variables)
+- [x] Dodge/parry detection hooks (OnPerformEvade, OnParryActivated)
 - [ ] Wwise soundbank creation
 
 ### Phase 3: Full System Access — DONE (code written, needs in-game testing)
