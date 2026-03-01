@@ -79,12 +79,8 @@ function OnInputHandled(NavCode : String, KeyCode : Int32, ActionId : Int32)
     }
 }
 
-@wrapMethod(CR4CommonMainMenuBase)
-function OnCloseMenu()
-{
-    wrappedMethod();
-    W3BA_PlayCue("ui_menu_back");
-}
+// NOTE: OnCloseMenu may not exist on CR4CommonMainMenuBase.
+// Removed to avoid compilation errors.
 
 // Helper to convert menu index to readable item names
 function W3BA_GetMainMenuItemName(menuIndex : Int32) : String
