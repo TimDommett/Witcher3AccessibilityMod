@@ -74,23 +74,6 @@ function OnInputHandled(NavCode : String, KeyCode : Int32, ActionId : Int32)
     }
 }
 
-// OnItemActivated fires when a menu item is selected/activated
-@wrapMethod(CR4IngameMenu)
-function OnItemActivated(actionType : Int32, menuTag : Int32) : void
-{
-    var itemName : String;
-
-    wrappedMethod(actionType, menuTag);
-
-    // Map menuTag to readable names (these values may vary by game version)
-    itemName = W3BA_GetIngameMenuItemName(menuTag);
-    if (itemName != "")
-    {
-        W3BA_SpeakText(itemName + " selected.", true, 2);
-        W3BA_PlayCue("ui_menu_select");
-    }
-}
-
 @wrapMethod(CR4IngameMenu)
 function OnCloseMenu()
 {

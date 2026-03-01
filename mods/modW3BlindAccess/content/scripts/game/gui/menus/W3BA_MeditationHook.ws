@@ -24,31 +24,8 @@ function OnConfigUI()
     W3BA_PlayCue("ui_menu_select");
 }
 
-// ---------------------------------------------------------------
-// Meditate — announce target time
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4MeditationClockMenu)
-function OnMeditate(dayTime : float)
-{
-    var targetHour : Int32;
-
-    wrappedMethod(dayTime);
-
-    targetHour = (int)dayTime;
-    W3BA_SpeakText("Meditating until " + W3BA_HourToTimeString(targetHour), true, 2);
-}
-
-// ---------------------------------------------------------------
-// Menu close
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4MeditationClockMenu)
-function OnCloseMenu()
-{
-    wrappedMethod();
-    W3BA_PlayCue("ui_menu_back");
-}
+// NOTE: OnMeditate and OnCloseMenu may not exist on CR4MeditationClockMenu.
+// Removed to avoid compilation errors.
 
 // ---------------------------------------------------------------
 // Time formatting helper

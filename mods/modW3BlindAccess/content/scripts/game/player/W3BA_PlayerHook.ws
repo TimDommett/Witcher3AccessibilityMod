@@ -68,42 +68,8 @@ function ReactToBeingHit(damageAction : W3DamageAction, optional buffNotApplied 
     return result;
 }
 
-// ---------------------------------------------------------------
-// Combat: player performs dodge
-// ---------------------------------------------------------------
-
-// Hook into the dodge state enter to detect successful dodges
-@wrapMethod(CR4Player)
-function OnPerformEvade(evadeType : EEvadeType)
-{
-    var core : W3BA_CoreManager;
-
-    wrappedMethod(evadeType);
-
-    core = W3BA_GetCoreManager();
-    if (core && core.GetCombatCues())
-    {
-        core.GetCombatCues().OnPlayerDodged();
-    }
-}
-
-// ---------------------------------------------------------------
-// Combat: player performs parry
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4Player)
-function OnParryActivated()
-{
-    var core : W3BA_CoreManager;
-
-    wrappedMethod();
-
-    core = W3BA_GetCoreManager();
-    if (core && core.GetCombatCues())
-    {
-        core.GetCombatCues().OnPlayerParried();
-    }
-}
+// NOTE: OnPerformEvade and OnParryActivated may not exist on CR4Player.
+// Dodge/parry feedback deferred until method names verified in-game.
 
 // ---------------------------------------------------------------
 // Target lock change detection

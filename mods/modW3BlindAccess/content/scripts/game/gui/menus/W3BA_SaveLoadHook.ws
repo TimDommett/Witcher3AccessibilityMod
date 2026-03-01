@@ -3,28 +3,8 @@
 // Hooks into save/load menu events to narrate save slot information.
 // Uses theGame.GetSaveInSlot() to extract save slot metadata.
 
-// Track currently focused save slot for narration
-@addField(CR4IngameMenu)
-var w3ba_currentSaveSlot : array<Int32>;
-
-@addField(CR4IngameMenu)
-var w3ba_currentSaveType : array<Int32>;
-
-// Hook save slot selection/focus
-@wrapMethod(CR4IngameMenu)
-function OnSaveSlotSelected(slotIndex : Int32, saveType : Int32)
-{
-    wrappedMethod(slotIndex, saveType);
-
-    // Store current slot
-    this.w3ba_currentSaveSlot.Clear();
-    this.w3ba_currentSaveSlot.PushBack(slotIndex);
-    this.w3ba_currentSaveType.Clear();
-    this.w3ba_currentSaveType.PushBack(saveType);
-
-    // Narrate save slot info
-    W3BA_NarrateSaveSlot(slotIndex, saveType);
-}
+// NOTE: OnSaveSlotSelected may not exist on CR4IngameMenu.
+// Save slot narration deferred until method name verified in-game.
 
 // Narrate save slot information
 function W3BA_NarrateSaveSlot(slotIndex : Int32, saveType : Int32)

@@ -17,29 +17,8 @@ function OnConfigUI()
     W3BA_AnnounceMapLocation();
 }
 
-// ---------------------------------------------------------------
-// Entry selected — a map pin was selected
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4MapMenu)
-function OnEntrySelected(tag : name)
-{
-    wrappedMethod(tag);
-
-    W3BA_SpeakText("" + tag, true, 2);
-    W3BA_PlayCue("ui_menu_focus");
-}
-
-// ---------------------------------------------------------------
-// Menu close
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4MapMenu)
-function OnCloseMenu()
-{
-    wrappedMethod();
-    W3BA_PlayCue("ui_menu_back");
-}
+// NOTE: OnEntrySelected and OnCloseMenu may not exist on CR4MapMenu.
+// Removed to avoid compilation errors.
 
 // ---------------------------------------------------------------
 // Location announcement

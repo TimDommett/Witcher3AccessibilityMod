@@ -60,13 +60,4 @@ function W3BA_CleanGlossaryName(internalName : String) : String
     return result;
 }
 
-// ---------------------------------------------------------------
-// Menu close
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4GlossaryBestiaryMenu)
-function OnCloseMenu()
-{
-    wrappedMethod();
-    W3BA_PlayCue("ui_menu_back");
-}
+// NOTE: CR4GlossaryBestiaryMenu does not have OnCloseMenu.
