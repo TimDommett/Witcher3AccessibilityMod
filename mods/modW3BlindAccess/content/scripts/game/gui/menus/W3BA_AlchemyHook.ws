@@ -75,36 +75,6 @@ function W3BA_CleanRecipeName(internalName : String) : String
 }
 
 // ---------------------------------------------------------------
-// Crafting result narration
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4AlchemyMenu)
-function OnAlchemyResult(success : Bool, itemName : CName)
-{
-    var text : String;
-    var localizedName : String;
-
-    wrappedMethod(success, itemName);
-
-    localizedName = GetLocStringByKeyExt(NameToString(itemName));
-    if (localizedName == "" || localizedName == NameToString(itemName))
-    {
-        localizedName = W3BA_CleanRecipeName(NameToString(itemName));
-    }
-
-    if (success)
-    {
-        text = "Crafted " + localizedName + ".";
-    }
-    else
-    {
-        text = "Cannot craft. Missing ingredients.";
-    }
-
-    W3BA_SpeakText(text, true, 2);
-}
-
-// ---------------------------------------------------------------
 // Menu close
 // ---------------------------------------------------------------
 

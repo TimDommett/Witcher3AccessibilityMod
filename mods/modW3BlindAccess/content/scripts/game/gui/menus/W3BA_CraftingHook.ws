@@ -60,36 +60,6 @@ function W3BA_CleanSchematicName(internalName : String) : String
 }
 
 // ---------------------------------------------------------------
-// Crafting result narration
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4CraftingMenu)
-function OnCraftingResult(success : Bool, itemName : CName)
-{
-    var text : String;
-    var localizedName : String;
-
-    wrappedMethod(success, itemName);
-
-    localizedName = GetLocStringByKeyExt(NameToString(itemName));
-    if (localizedName == "" || localizedName == NameToString(itemName))
-    {
-        localizedName = W3BA_CleanSchematicName(NameToString(itemName));
-    }
-
-    if (success)
-    {
-        text = "Crafted " + localizedName + ".";
-    }
-    else
-    {
-        text = "Cannot craft. Missing materials.";
-    }
-
-    W3BA_SpeakText(text, true, 2);
-}
-
-// ---------------------------------------------------------------
 // Menu close
 // ---------------------------------------------------------------
 
