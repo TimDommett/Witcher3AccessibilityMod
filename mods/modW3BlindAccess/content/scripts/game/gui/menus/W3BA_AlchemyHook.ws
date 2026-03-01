@@ -15,31 +15,6 @@ function OnConfigUI()
 }
 
 // ---------------------------------------------------------------
-// Tab changes (Potions, Oils, Bombs, Decoctions, etc.)
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4AlchemyMenu)
-function OnTabChanged(tabIndex : Int32)
-{
-    var tabName : String;
-
-    wrappedMethod(tabIndex);
-
-    switch (tabIndex)
-    {
-        case 0: tabName = "Potions";     break;
-        case 1: tabName = "Oils";        break;
-        case 2: tabName = "Bombs";       break;
-        case 3: tabName = "Decoctions";  break;
-        case 4: tabName = "Substances";  break;
-        default: tabName = "Tab " + tabIndex; break;
-    }
-
-    W3BA_SpeakText(tabName + ".", true, 2);
-    W3BA_PlayCue("ui_menu_select");
-}
-
-// ---------------------------------------------------------------
 // Entry selected — narrate recipe name with details
 // ---------------------------------------------------------------
 

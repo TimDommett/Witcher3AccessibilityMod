@@ -15,31 +15,6 @@ function OnConfigUI()
 }
 
 // ---------------------------------------------------------------
-// Tab changes (Monsters, Characters, Places, etc.)
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4GlossaryBestiaryMenu)
-function OnTabChanged(tabIndex : Int32)
-{
-    var tabName : String;
-
-    wrappedMethod(tabIndex);
-
-    switch (tabIndex)
-    {
-        case 0: tabName = "Monsters";   break;
-        case 1: tabName = "Characters"; break;
-        case 2: tabName = "Places";     break;
-        case 3: tabName = "Tutorial";   break;
-        case 4: tabName = "Books";      break;
-        default: tabName = "Tab " + tabIndex; break;
-    }
-
-    W3BA_SpeakText(tabName + ".", true, 2);
-    W3BA_PlayCue("ui_menu_select");
-}
-
-// ---------------------------------------------------------------
 // Entry selected — narrate bestiary/glossary entry
 // ---------------------------------------------------------------
 

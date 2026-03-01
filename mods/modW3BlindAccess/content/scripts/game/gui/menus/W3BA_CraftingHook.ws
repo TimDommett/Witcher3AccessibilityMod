@@ -15,30 +15,6 @@ function OnConfigUI()
 }
 
 // ---------------------------------------------------------------
-// Tab changes (Weapons, Armor, Upgrades, Components)
-// ---------------------------------------------------------------
-
-@wrapMethod(CR4CraftingMenu)
-function OnTabChanged(tabIndex : Int32)
-{
-    var tabName : String;
-
-    wrappedMethod(tabIndex);
-
-    switch (tabIndex)
-    {
-        case 0: tabName = "Weapons";    break;
-        case 1: tabName = "Armor";      break;
-        case 2: tabName = "Upgrades";   break;
-        case 3: tabName = "Components"; break;
-        default: tabName = "Tab " + tabIndex; break;
-    }
-
-    W3BA_SpeakText(tabName + ".", true, 2);
-    W3BA_PlayCue("ui_menu_select");
-}
-
-// ---------------------------------------------------------------
 // Entry selected — narrate schematic name with details
 // ---------------------------------------------------------------
 
