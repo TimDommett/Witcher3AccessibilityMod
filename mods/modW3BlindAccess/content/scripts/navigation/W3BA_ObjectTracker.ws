@@ -220,9 +220,7 @@ class W3BA_ObjectTracker
         var container : W3Container;
         var herb : W3Herb;
         var door : W3Door;
-        var lootContainer : W3LootContainer;
         var focusClue : W3FocusAreaTrigger;
-        var itemEntity : W3ItemEntity;
 
         // Check if it's an NPC
         npc = (CNewNPC)entity;
@@ -242,13 +240,6 @@ class W3BA_ObjectTracker
         if (container)
         {
             return W3BA_OBJ_CONTAINER;
-        }
-
-        // Check for loot containers (dead bodies, etc.)
-        lootContainer = (W3LootContainer)entity;
-        if (lootContainer)
-        {
-            return W3BA_OBJ_LOOT;
         }
 
         // Check for herbs using class cast
@@ -272,9 +263,8 @@ class W3BA_ObjectTracker
             return W3BA_OBJ_CLUE;
         }
 
-        // Check for item entities (dropped items)
-        itemEntity = (W3ItemEntity)entity;
-        if (itemEntity)
+        // Check for dropped items via tags (CItemEntity extends CEntity, not CGameplayEntity)
+        if (entity.HasTag('item') || entity.HasTag('loot'))
         {
             return W3BA_OBJ_LOOT;
         }

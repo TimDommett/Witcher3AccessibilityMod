@@ -215,31 +215,13 @@ class W3BA_CombatMonitor
             distance = VecDistance(playerPos, enemyPos);
             if (distance > 8.0) { continue; }
 
-            // Try to detect if enemy is attacking
-            // Method 1: Check if enemy is performing attack action
+            // Detect if enemy is attacking using CNewNPC.IsAttacking()
             npc = (CNewNPC)enemy;
-            if (npc)
+            if (npc && npc.IsAttacking())
             {
-                isAttacking = npc.IsInCombatAction();
-                if (isAttacking)
-                {
-                    // Check if it's specifically an attack action
-                    if (npc.GetBehaviorVariable('isAttacking') > 0.5)
-                    {
-                        combatCues.OnEnemyAttacking(enemy.GetDisplayName(), enemyPos);
-                        lastAttackWarningTime = currentTime;
-                        return; // One warning at a time
-                    }
-                }
-            }
-
-            // Method 2: Check CActor combat action type
-            if (enemy.IsInCombatAction())
-            {
-                // Generic attack warning based on combat action state
                 combatCues.OnEnemyAttacking(enemy.GetDisplayName(), enemyPos);
                 lastAttackWarningTime = currentTime;
-                return;
+                return; // One warning at a time
             }
         }
     }

@@ -2,9 +2,8 @@
 //
 // Hooks into save/load menu events to narrate save slot information.
 // Uses theGame.GetSaveInSlot() to extract save slot metadata.
-
-// NOTE: OnSaveSlotSelected may not exist on CR4IngameMenu.
-// Save slot narration deferred until method name verified in-game.
+// SSavegameInfo only has: filename, slotType, slotIndex, comboStatus.
+// Use GetDisplayNameForSavedGame() for a human-readable save description.
 
 // Narrate save slot information
 function W3BA_NarrateSaveSlot(slotIndex : Int32, saveType : Int32)
@@ -13,40 +12,27 @@ function W3BA_NarrateSaveSlot(slotIndex : Int32, saveType : Int32)
     var text : String;
     var slotNum : Int32;
     var hasData : Bool;
+    var displayName : String;
 
     slotNum = slotIndex + 1; // 1-based for user display
 
     // Try to get save info for this slot
     hasData = theGame.GetSaveInSlot(saveType, slotIndex, saveInfo);
 
-    if (hasData && saveInfo.slotType != SGT_None)
+    if (hasData)
     {
-        // Build detailed narration from save info
+        // Build narration from available save info
         text = "Slot " + slotNum + ". ";
 
-        // Add area name if available
-        if (saveInfo.areaName != "")
+        // Get the display name which includes area, level, etc.
+        displayName = theGame.GetDisplayNameForSavedGame(saveInfo);
+        if (displayName != "")
         {
-            text += saveInfo.areaName + ". ";
+            text += displayName + ". ";
         }
 
-        // Add level
-        if (saveInfo.playerLevel > 0)
-        {
-            text += "Level " + saveInfo.playerLevel + ". ";
-        }
-
-        // Add playtime (convert from seconds to hours/minutes)
-        if (saveInfo.playTime > 0)
-        {
-            text += W3BA_FormatPlaytime(saveInfo.playTime) + ". ";
-        }
-
-        // Add difficulty if available
-        if (saveInfo.difficulty > 0)
-        {
-            text += W3BA_DifficultyToString(saveInfo.difficulty) + ". ";
-        }
+        // Add save type
+        text += W3BA_SaveTypeToString(saveInfo.slotType) + ".";
     }
     else
     {
@@ -57,34 +43,13 @@ function W3BA_NarrateSaveSlot(slotIndex : Int32, saveType : Int32)
     W3BA_PlayCue("ui_menu_focus");
 }
 
-// Format playtime in hours and minutes
-function W3BA_FormatPlaytime(seconds : Int32) : String
+// Convert save game type enum to readable string
+function W3BA_SaveTypeToString(saveType : ESaveGameType) : String
 {
-    var hours : Int32;
-    var minutes : Int32;
-
-    hours = seconds / 3600;
-    minutes = (seconds % 3600) / 60;
-
-    if (hours > 0)
-    {
-        return hours + " hours " + minutes + " minutes";
-    }
-    else
-    {
-        return minutes + " minutes";
-    }
-}
-
-// Convert difficulty ID to string
-function W3BA_DifficultyToString(difficulty : Int32) : String
-{
-    switch (difficulty)
-    {
-        case 1: return "Just the Story";
-        case 2: return "Story and Sword";
-        case 3: return "Blood and Broken Bones";
-        case 4: return "Death March";
-        default: return "";
-    }
+    if (saveType == SGT_AutoSave)         { return "Autosave"; }
+    if (saveType == SGT_CheckPoint)       { return "Checkpoint"; }
+    if (saveType == SGT_ForcedCheckPoint) { return "Checkpoint"; }
+    if (saveType == SGT_QuickSave)        { return "Quick save"; }
+    if (saveType == SGT_Manual)           { return "Manual save"; }
+    return "Save";
 }

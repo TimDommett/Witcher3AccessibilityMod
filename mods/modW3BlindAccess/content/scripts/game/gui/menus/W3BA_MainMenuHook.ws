@@ -1,80 +1,32 @@
 // W3BlindAccess - Main Menu Hook
-// Wraps CR4CommonMainMenuBase to announce menu open/close.
-// CR4CommonMainMenu is empty; OnConfigUI is defined in the base class.
-
-// Track menu selection index for navigation announcements
-@addField(CR4CommonMainMenuBase)
-var w3ba_mainMenuIndex : array<Int32>;
+// Wraps CR4CommonMainMenuBase to announce menu open/close and submenu navigation.
+// CR4CommonMainMenuBase does NOT have OnInputHandled — navigation is Flash-handled.
 
 @wrapMethod(CR4CommonMainMenuBase)
 function OnConfigUI()
 {
     wrappedMethod();
 
-    // Initialize menu index to 0 (first item)
-    this.w3ba_mainMenuIndex.Clear();
-    this.w3ba_mainMenuIndex.PushBack(0);
-
     // Show a startup banner so the user knows the mod loaded successfully.
     LogChannel('W3BA', "STATUS|W3BlindAccess mod loaded successfully");
     theGame.GetGuiManager().ShowNotification("W3BlindAccess loaded - accessibility mod active", 6000);
 
-    W3BA_SpeakText("Main Menu. Continue.", true, 2);
+    W3BA_SpeakText("Main Menu.", true, 2);
     W3BA_PlayCue("ui_menu_select");
 }
 
-// OnInputHandled fires on all menu input including navigation
+// OnRequestSubMenu fires when a menu option opens a submenu
 @wrapMethod(CR4CommonMainMenuBase)
-function OnInputHandled(NavCode : String, KeyCode : Int32, ActionId : Int32)
+function OnRequestSubMenu(menuName : name, optional initData : IScriptable)
 {
-    var currentIndex : Int32;
-    var itemName : String;
-    var maxItems : Int32;
+    var label : String;
 
-    wrappedMethod(NavCode, KeyCode, ActionId);
+    wrappedMethod(menuName, initData);
 
-    // Main menu typically has these items (may vary with saves available)
-    maxItems = 7;
-
-    // Get current index
-    if (this.w3ba_mainMenuIndex.Size() > 0)
+    label = W3BA_GetMainSubmenuName(menuName);
+    if (label != "")
     {
-        currentIndex = this.w3ba_mainMenuIndex[0];
-    }
-    else
-    {
-        currentIndex = 0;
-    }
-
-    // Handle navigation
-    if (NavCode == "navigate_down" || NavCode == "down")
-    {
-        currentIndex = currentIndex + 1;
-        if (currentIndex >= maxItems)
-        {
-            currentIndex = 0; // Wrap around
-        }
-
-        this.w3ba_mainMenuIndex.Clear();
-        this.w3ba_mainMenuIndex.PushBack(currentIndex);
-
-        itemName = W3BA_GetMainMenuItemName(currentIndex);
-        W3BA_SpeakText(itemName, true, 2);
-        W3BA_PlayCue("ui_menu_focus");
-    }
-    else if (NavCode == "navigate_up" || NavCode == "up")
-    {
-        currentIndex = currentIndex - 1;
-        if (currentIndex < 0)
-        {
-            currentIndex = maxItems - 1; // Wrap around
-        }
-
-        this.w3ba_mainMenuIndex.Clear();
-        this.w3ba_mainMenuIndex.PushBack(currentIndex);
-
-        itemName = W3BA_GetMainMenuItemName(currentIndex);
-        W3BA_SpeakText(itemName, true, 2);
+        W3BA_SpeakText(label, true, 2);
         W3BA_PlayCue("ui_menu_focus");
     }
 }
@@ -86,19 +38,15 @@ function OnCloseMenu()
     W3BA_PlayCue("ui_menu_back");
 }
 
-// Helper to convert menu index to readable item names
-function W3BA_GetMainMenuItemName(menuIndex : Int32) : String
+// Convert submenu name to readable label
+function W3BA_GetMainSubmenuName(menuName : name) : String
 {
-    // Main menu items (order may vary based on save game availability)
-    switch (menuIndex)
+    switch (menuName)
     {
-        case 0:  return "Continue";
-        case 1:  return "New Game";
-        case 2:  return "Load Game";
-        case 3:  return "Options";
-        case 4:  return "Downloadable Content";
-        case 5:  return "Credits";
-        case 6:  return "Exit";
-        default: return "Menu item " + menuIndex;
+        case 'IngameMenu':    return "Options";
+        case 'LoadGameMenu':  return "Load Game";
+        case 'SaveGameMenu':  return "Save Game";
+        case 'OptionsMenu':   return "Options";
+        default:              return NameToString(menuName);
     }
 }

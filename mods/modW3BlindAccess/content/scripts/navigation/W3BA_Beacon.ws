@@ -217,16 +217,21 @@ class W3BA_NavigationBeacon
 
     private function TryGetUserWaypointPosition(mapManager : CCommonMapManager) : Vector
     {
-        var userPin : SUserMapPinInstanceData;
+        var pinId : Int32;
+        var pinArea : Int32;
+        var pinX : Float;
+        var pinY : Float;
+        var pinType : Int32;
         var hasUserPin : Bool;
 
         // Check if user has placed a custom waypoint on the map
-        hasUserPin = mapManager.GetUserMapPinByIndex(0, userPin);
+        // GetUserMapPinByIndex uses out parameters, not a struct
+        hasUserPin = mapManager.GetUserMapPinByIndex(0, pinId, pinArea, pinX, pinY, pinType);
         if (hasUserPin)
         {
-            if (userPin.position.X != 0 || userPin.position.Y != 0)
+            if (pinX != 0 || pinY != 0)
             {
-                return userPin.position;
+                return Vector(pinX, pinY, 0);
             }
         }
 
