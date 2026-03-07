@@ -31,12 +31,8 @@ function OnRequestSubMenu(menuName : name, optional initData : IScriptable)
     }
 }
 
-@wrapMethod(CR4CommonMainMenuBase)
-function OnCloseMenu()
-{
-    wrappedMethod();
-    W3BA_PlayCue("ui_menu_back");
-}
+// NOTE: OnCloseMenu may not exist on CR4CommonMainMenuBase.
+// Removed to avoid compilation errors.
 
 // Convert submenu name to readable label
 function W3BA_GetMainSubmenuName(menuName : name) : String
